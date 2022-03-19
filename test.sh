@@ -3,9 +3,9 @@ assert(){
     expected="$1"
     input="$2"
 
-    ./9cc.o "$input" > 9cc.s
-    gcc 9cc.s -o 9cc.exe
-    ./9cc.exe
+    ./9cc.o "$input" > tmp.s
+    gcc tmp.s -o tmp.exe
+    ./tmp.exe
     actual="$?"
 
     if [ "$actual"="$expected" ]; then

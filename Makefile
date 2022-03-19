@@ -1,6 +1,5 @@
-CFLAGS=-std=c11 -g -static
-
 9cc.o:9cc.c
+	gcc 9cc.c -o 9cc.o
 
 test:9cc.o
 	./test.sh

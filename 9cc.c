@@ -30,35 +30,35 @@ void error(char *fmt,...){//argument is same to Printf Fanction
     exit(1);
 }
 
-bool consume(char op){
-    if(token->kind != TK_RESERVED || token->str[0] != op);{
+bool consume(char op){//remove ';'
+    if(token->kind != TK_RESERVED || token->str[0] != op){
         return false;
     }
     token=token->next;
     return true;
 }
 
-void expect(char op){
+void expect(char op){//remove '\n' ok
     if(token->kind != TK_RESERVED || token->str[0] != op){
-        error("'%c'ではありません\n",op);
+        error("'%c'ではありません",op);
     }
     token=token->next;
 }
 
-int expect_number(){
+int expect_number(){//remove '\n' ok
     if(token->kind!=TK_NUM){
-        error("数ではありません\n");
+        error("数ではありません");
     }
     int val=token->val;
     token=token->next;
     return val;
 }
 
-bool at_eof(){
+bool at_eof(){//ok
     return token->kind==TK_EOF;
 }
 
-Token *new_token(TokenKind kind,Token *cur,char *str){
+Token *new_token(TokenKind kind,Token *cur,char *str){//ok
     Token *tok=calloc(1,sizeof(Token));
     tok->kind=kind;
     tok->str=str;
@@ -66,7 +66,7 @@ Token *new_token(TokenKind kind,Token *cur,char *str){
     return tok;
 }
 
-Token *tokenize(char *p){
+Token *tokenize(char *p){//ok
     Token head;
     head.next=NULL;
     Token *cur=&head;
@@ -97,7 +97,7 @@ Token *tokenize(char *p){
 
 
 
-int main(int argc, char**argv){
+int main(int argc, char**argv){//ok
     if(argc!=2){
         fprintf(stderr,"引数の個数が正しくありません\n");
         return 1;
@@ -112,7 +112,7 @@ int main(int argc, char**argv){
 
     printf("  mov rax, %d\n",expect_number());
     
-    while(!at_eof()){
+    while(!at_eof()){//ok
         if(consume('+')){
             printf("  add rax, %d\n", expect_number());
             continue;

@@ -77,7 +77,8 @@ Token *tokenize(char *p){//ok
         }
 
         if(*p=='+'||*p=='-'){
-            cur = new_token(TK_RESERVED,cur,p++);
+            cur = new_token(TK_RESERVED,cur,p);
+            p++;
             continue;
         }
 

@@ -22,11 +22,28 @@ struct Token{
 
 Token *token;
 
-void error(char *fmt,...){//argument is same to Printf Fanction
+/*void error(char *fmt,...){//argument is same to Printf Fanction
     va_list ap;
     va_start(ap,fmt);
     vfprintf(stderr,fmt,ap);
     fprintf(stderr,"\n");
+    exit(1);
+}*/
+
+char*user_input;
+
+void error_at(char*loc,char*fmt,...){
+    va_list ap;
+    va_start(ap,fmt);
+
+    int pos=loc-user_input;
+    fprintf(stderr,"%s\n",user_input);
+    fprintf(stderr,"%*s",pos," ");
+    fprintf(stderr,"^");
+    vfprintf(stderr,fmt,ap);
+    fprintf(stderr,"\n");
+
+    va_end(ap);
     exit(1);
 }
 
@@ -40,14 +57,14 @@ bool consume(char op){//remove ';'
 
 void expect(char op){//remove '\n' ok
     if(token->kind != TK_RESERVED || token->str[0] != op){
-        error("'%c'ではありません",op);
+        error_at(token->str,"'%c'ではありません",op);
     }
     token=token->next;
 }
 
 int expect_number(){//remove '\n' ok
     if(token->kind!=TK_NUM){
-        error("数ではありません");
+        error_at(token->str,"数ではありません");
     }
     int val=token->val;
     token=token->next;
@@ -66,7 +83,8 @@ Token *new_token(TokenKind kind,Token *cur,char *str){//ok
     return tok;
 }
 
-Token *tokenize(char *p){//ok
+Token *tokenize(){//ok//change for 'error_at' function
+    char*p=user_input;//change for 'error_at' function
     Token head;
     head.next=NULL;
     Token *cur=&head;
@@ -88,7 +106,7 @@ Token *tokenize(char *p){//ok
             continue;
         }
 
-        error("トークナイズできません\n");
+        error_at(token->str,"トークナイズできません\n");//change for 'error_at' function1
     }
     new_token(TK_EOF,cur,p);
     return head.next;
@@ -104,7 +122,8 @@ int main(int argc, char**argv){//ok
         return 1;
     }
 
-    token=tokenize(argv[1]);
+    user_input=argv[1];//change for 'error_at' function
+    token=tokenize();//change for 'error_at' function
 
 
     printf(".intel_syntax noprefix\n");

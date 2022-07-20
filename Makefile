@@ -1,12 +1,17 @@
-9cc.o:9cc.c
-	gcc 9cc.c -o 9cc.o
+CC=gcc
+CFLAGS=-std=c11 -g -static
+SRCS=$(wildcard *.c)
+OBJS=$(SRCS:.c=.o)
 
-test:9cc.o
+9cc:$(OBJS)
+	$(CC) $(OBJS) -o 9cc
+
+$(OBJS):9cc.h
+
+test:9cc
 	./test.sh
 
 clean:
-	rm -f 9cc.o *.o *~ tmp.exe*
+	rm -f 9cc *.o *~ tmp.exe*
 
 .PHONY: test clean
-
-

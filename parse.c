@@ -22,7 +22,7 @@ void expect(char* op){//remove '\n' ok
     }
     token=token->next;
 }
-/*--------------------------------------------------------------------------------*/
+
 int expect_number(){//remove '\n' ok//kk
     if(token->kind!=TK_NUM){
         error_at(token->str,"数ではありません");
@@ -60,29 +60,31 @@ Token *tokenize(){//ok//change for 'error_at' function//kk
             continue;
         }
 
-       // if(strchr("+-*/()",*p)){
-        /*    cur = new_token(TK_RESERVED,cur,p);
-            p++;
-            continue;
-        }
-        */
         if(startswith(p,"==")||startswith(p,"<=")||startswith(p,">=")||startswith(p,"!=")){
             cur=new_token(TK_RESERVED,cur,p,2);
             p+=2;
             continue;
         }
 
-        if(strchr("+-*/()<>",*p)){
+        if(strchr("+-*/()<>=;",*p)){
             cur=new_token(TK_RESERVED,cur,p,1);
             p++;;
             continue;
         }
+
+       
 
         if(isdigit(*p)){
             cur = new_token(TK_NUM,cur,p,0);
             char*q=p;
             cur->val = strtol(p,&p,10);
             cur->len=p-q;
+            continue;
+        }
+
+        if('a'<=*p&&*p<='z'){
+            cur=new_token(TK_IDENT,cur,p,1);
+            p++;
             continue;
         }
 
@@ -93,6 +95,9 @@ Token *tokenize(){//ok//change for 'error_at' function//kk
 }
 
 /*_____________________________________________________Node____________________________________________________________*/
+
+Node*code[100];
+
 
 Node*new_node(NodeKind kind){//kk
     Node*node=calloc(1,sizeof(Node));
@@ -113,9 +118,50 @@ Node*new_num(int val){//kk
     return node;
 }
 
+bool consume_ident(){
+    if(token->kind!=TK_IDENT||token->len!=1){
+        return false;
+    }
+    return true;
+}
+
+/*
+bool consume(char* op){
+    if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
+        return false;
+    }
+    token=token->next;
+    return true;
+}
+*/
+
+
+Node*program(){
+    int i=0;
+    while(!at_eof()){
+        code[i]=stmt();
+        i++;
+    }
+    code[i]=NULL;
+}
+
+Node*stmt(){
+    Node*node=expr();
+    expect(";");
+    return node;
+}
+
 
 Node*expr(){
-   return equality();
+   return assign();
+}
+
+Node*assign(){
+    Node*node=equality();
+    if(consume("=")){
+        node=new_binary(ND_ASSIGN,node,assign());
+    }
+    return node;
 }
 
 Node*equality(){//kk
@@ -202,6 +248,13 @@ Node*primary(){//kk
     if (consume("(")){
         Node*node=expr();
         expect(")");
+        return node;
+    }
+
+    if(consume_ident()){
+        Node*node=calloc(1,sizeof(Node));
+        node->kind=ND_LVAR;
+        node->offset=(token->str[0]-'a'+1)*8;
         return node;
     }
 

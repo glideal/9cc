@@ -3,7 +3,7 @@
 
 extern char* user_input;
 extern Token*token;
-
+extern Node*code[100];
 
 int main(int argc, char**argv){//ok//kk
     if(argc!=2){
@@ -12,31 +12,28 @@ int main(int argc, char**argv){//ok//kk
 
     user_input=argv[1];//change for 'error_at' function
     token=tokenize();//change for 'error_at' function
-    Node*node=expr();
+    program();
 
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
 
-    /*
-    printf("  mov rax, %d\n",expect_number());
-    
-    while(!at_eof()){//ok
-        if(consume('+')){
-            printf("  add rax, %d\n", expect_number());
-            continue;
-        }
+    //prologue
 
-       expect('-');
-       printf("  sub rax, %d\n",expect_number());
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    printf("  sub rsp, %d\n",8*26);
+
+    for(int i=0;code[i];i++){
+        gen(code[i]);
+
+        
+        printf("  pop rax\n");
     }
-    */
 
-    gen(node);
-
-    printf("  pop rax\n");
-
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
     printf("  ret\n");
     return 0;
 }

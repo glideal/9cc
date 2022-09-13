@@ -2,11 +2,14 @@
 #include<stdlib.h>
 #include<string.h>
 #include<ctype.h>
+#include<stdio.h>
+
 
 char* user_input;
 
 Token *token;
 
+LVar*locals;
 
 bool consume(char* op){//remove ';'
     if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
@@ -49,6 +52,24 @@ bool startswith(char*p,char*q){//kk
     return memcmp(p,q,strlen(q))==0;
 }
 
+char*StrIdent(char*s,char** endptr){
+    char*str=calloc(100,sizeof(char));
+    for(int i=0;('a'<=*s&&*s<='z');s++){
+        str[i]=*s;
+        i++;
+    }
+    *endptr=s;
+    return &str[0];
+}
+
+int is_alnum(char c){
+    return  ('a'<=c&&c<='z')||
+            ('A'<=c&&c<='Z')||
+            ('0'<=c&&c<='9')||
+            (c=='_');
+
+}
+
 Token *tokenize(){//ok//change for 'error_at' function//kk
     char*p=user_input;//change for 'error_at' function
     Token head;
@@ -82,9 +103,17 @@ Token *tokenize(){//ok//change for 'error_at' function//kk
             continue;
         }
 
+        if(strncmp(p,"return",6)==0&&(!is_alnum(p[6]))){
+            cur=new_token(TK_RETURN,cur,p,6);
+            p+=6;
+            continue;
+        }
+
         if('a'<=*p&&*p<='z'){
-            cur=new_token(TK_IDENT,cur,p,1);
-            p++;
+            cur=new_token(TK_IDENT,cur,p,0);
+            char*q=p;
+            cur->str=StrIdent(p,&p);
+            cur->len=p-q;
             continue;
         }
 
@@ -118,25 +147,41 @@ Node*new_num(int val){//kk
     return node;
 }
 
-bool consume_ident(){
-    if(token->kind!=TK_IDENT||token->len!=1){
-        return false;
+Token* consume_ident(){
+    if(token->kind!=TK_IDENT){
+        return NULL;
     }
-    return true;
+    Token*tok=token;
+    token=token->next;
+    return tok;
 }
 
-/*
-bool consume(char* op){
-    if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
+
+LVar *find_lvar(Token*tok){
+    for(LVar *var=locals;var;var=var->next){
+        if(var->len==tok->len&&!memcmp(tok->str,var->name,var->len)){
+            return var;
+        }
+    }
+    return NULL;
+}
+
+bool consume_return(){
+    if(token->kind!=TK_RETURN){
         return false;
     }
     token=token->next;
     return true;
 }
-*/
+
 
 
 Node*program(){
+    LVar locals_head;
+    locals_head.next=NULL;
+    locals_head.offset=0;
+    locals=&locals_head;
+
     int i=0;
     while(!at_eof()){
         code[i]=stmt();
@@ -146,8 +191,19 @@ Node*program(){
 }
 
 Node*stmt(){
-    Node*node=expr();
-    expect(";");
+    Node*node;
+
+    if(consume_return()){
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_RETURN;
+        node->lhs=expr();
+    }else{
+        node=expr();
+    }
+
+    if(!consume(";")){
+        error_at(token->str,"';'ではありません");
+    }
     return node;
 }
 
@@ -250,11 +306,28 @@ Node*primary(){//kk
         expect(")");
         return node;
     }
+    Token*tok=consume_ident();
 
-    if(consume_ident()){
+    //printf("OK1\n");
+    if(tok){
         Node*node=calloc(1,sizeof(Node));
         node->kind=ND_LVAR;
-        node->offset=(token->str[0]-'a'+1)*8;
+
+
+        LVar*lvar=find_lvar(tok);
+
+        if(lvar){
+            node->offset=lvar->offset;
+        }
+        else{
+            lvar=calloc(1,sizeof(LVar));
+            lvar->next=locals;
+            lvar->name=tok->str;
+            lvar->len=tok->len;
+            lvar->offset=locals->offset+8;
+            node->offset=lvar->offset;
+            locals=lvar;
+        }
         return node;
     }
 

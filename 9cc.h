@@ -8,6 +8,7 @@ typedef enum {
     TK_RESERVED,  //token(symbol)
     TK_IDENT,     //識別子
     TK_NUM,       //integer token
+    TK_RETURN,
     TK_EOF,       //token to remark end of input
 }TokenKind;
 
@@ -31,6 +32,8 @@ void error_at(char*loc,char*fmt,...);
 
 bool consume(char* op);
 
+Token*consume_ident();
+
 void expect(char* op);
 
 int expect_number();
@@ -40,6 +43,12 @@ bool at_eof();
 Token *new_token(TokenKind kind,Token *cur,char *str,int len);
 
 bool startswith(char*p,char*q);
+
+typedef struct LVar LVar;
+
+char*StrIdent(char*restrict s,char**restrict endptr);
+
+int is_alnum(char c);
 
 Token *tokenize();
 
@@ -56,6 +65,7 @@ typedef enum{
     ND_NE,
     ND_LT,
     ND_LE,
+    ND_RETURN,
     ND_NUM,
 }NodeKind;
 
@@ -76,6 +86,17 @@ Node*new_node(NodeKind kind);
 Node*new_binary(NodeKind kind,Node*lhs,Node*rhs);
 
 Node*new_num(int val);
+
+struct LVar{
+    struct LVar*next;
+    char*name;
+    int len;
+    int offset;
+};
+
+LVar *find_lvar(Token*tok);
+
+bool consume_return();
 
 Node*program();
 Node*stmt();

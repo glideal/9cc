@@ -46,4 +46,10 @@ assert 1 '1>=0;'
 assert 1 '1>=1;'
 assert 0 '1>=2;'
 
+assert 42 'return 42;'
+assert 42 'num=42; return num;'
+assert 42 'num=42;mul=17;return num;'
+assert 42 'num=3;mul=2;return num*(3+4)*mul;'
+
+
 echo OK

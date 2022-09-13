@@ -4,6 +4,8 @@
 extern char* user_input;
 extern Token*token;
 extern Node*code[100];
+extern LVar*locals;
+
 
 int main(int argc, char**argv){//ok//kk
     if(argc!=2){
@@ -28,7 +30,6 @@ int main(int argc, char**argv){//ok//kk
     for(int i=0;code[i];i++){
         gen(code[i]);
 
-        
         printf("  pop rax\n");
     }
 

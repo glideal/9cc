@@ -6,11 +6,13 @@
 
 typedef enum {
     TK_RESERVED,  //token(symbol)
+    TK_CONTROL,   //制御構文
     TK_IDENT,     //識別子
     TK_NUM,       //integer token
     TK_RETURN,
     TK_EOF,       //token to remark end of input
 }TokenKind;
+
 
 //typedef struct Token Token;
 
@@ -32,6 +34,8 @@ void error_at(char*loc,char*fmt,...);
 
 bool consume(char* op);
 
+bool consume_control(char*op);
+
 Token*consume_ident();
 
 void expect(char* op);
@@ -46,7 +50,8 @@ bool startswith(char*p,char*q);
 
 typedef struct LVar LVar;
 
-char*StrIdent(char*restrict s,char**restrict endptr);
+char*StrIdent(char* s,char** endptr);
+
 
 int is_alnum(char c);
 
@@ -55,6 +60,12 @@ Token *tokenize();
 /*______________________________________________Node_________________________________________________*/
 
 typedef enum{
+    ND_IF,
+    ND_IFELSE,
+    ND_ELSE,
+    ND_WHILE,
+    ND_FOR,
+
     ND_ADD,
     ND_SUB,
     ND_MUL,

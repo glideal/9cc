@@ -50,6 +50,18 @@ assert 42 'return 42;'
 assert 42 'num=42; return num;'
 assert 42 'num=42;mul=17;return num;'
 assert 42 'num=3;mul=2;return num*(3+4)*mul;'
+assert 42 'num=21;num=42;return num;'
+assert 42 'num=21;num=num+21; return num;'
+
+assert 42 'if(2*3>5)42;'
+assert 42 'if(2*3==5)39 else 42;'
+assert 42 'if(2*3==5)37 else if(2*3<5)39 else 42;'
+
+assert 42 'num=0;while(num<42)num=num+1;return num;'
+
+assert 42 'for(num=1;num<=42;num=num+1) answer=num;return answer;'
+assert 42 'num=0; for(;num<=42;num=num+1) answer=num;return answer;'
+
 
 
 echo OK

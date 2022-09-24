@@ -1,6 +1,8 @@
 #include "9cc.h"
 #include <stdio.h>
 
+static int control_count=0;
+
 void gen_lval(Node*node){
     if (node->kind!=ND_LVAR){
         error("the left value of assignment is not a variable");
@@ -43,6 +45,90 @@ void gen(Node*node){//kk
             printf("  push rdi\n");
             return;
         }
+        case ND_IF:{
+            gen(node->lhs);
+
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+
+            int screen_count=control_count;
+            control_count++;
+
+            printf("  je .Lend%03d\n",screen_count);
+
+            gen(node->rhs);
+
+            printf(".Lend%03d:\n",screen_count);
+
+            return;
+        }
+        case ND_IFELSE:{
+            gen(node->lhs);
+
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+
+            int screen_count=control_count;
+            control_count++;
+
+            printf("  je .Lelse%03d\n",screen_count);
+
+            gen(node->rhs->lhs);
+
+            printf("  jmp .Lend%03d\n",screen_count);
+
+            printf(".Lelse%03d:\n",screen_count);
+            gen(node->rhs->rhs);
+
+            printf(".Lend%03d:\n",screen_count);
+
+            return;
+        }
+        case ND_WHILE:{
+            int screen_count=control_count;
+            printf(".Lbegin%03d:\n",screen_count);
+            gen(node->lhs);
+            
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%03d\n",screen_count);
+
+            gen(node->rhs);
+            printf("  jmp .Lbegin%03d\n",screen_count);
+            printf(".Lend%03d:\n",screen_count);
+
+            control_count++;
+
+            return;
+        }
+        case ND_FOR:{
+            if(node->lhs->lhs){
+            gen(node->lhs->lhs);
+            }
+            int screen_count=control_count;
+            printf(".Lbegin%03d:\n",screen_count);
+            if(node->lhs->rhs->lhs){
+            gen(node->lhs->rhs->lhs);
+            }
+
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+
+            printf("  je .Lend%03d\n",screen_count);
+
+            gen(node->rhs);
+            if(node->lhs->rhs->rhs){
+            gen(node->lhs->rhs->rhs);
+            }
+
+            printf("  jmp .Lbegin%03d\n",screen_count);
+            
+            printf(".Lend%03d:\n",screen_count);
+
+            control_count++;
+
+            return;
+        }  
     }
 
 

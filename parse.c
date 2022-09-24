@@ -11,6 +11,14 @@ Token *token;
 
 LVar*locals;
 
+bool consume_control(char* op){//remove ';'
+    if(token->kind != TK_CONTROL || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
+        return false;
+    }
+    token=token->next;
+    return true;
+}
+
 bool consume(char* op){//remove ';'
     if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
         return false;
@@ -109,6 +117,30 @@ Token *tokenize(){//ok//change for 'error_at' function//kk
             continue;
         }
 
+        if(strncmp(p,"if",2)==0&&(!is_alnum(p[2]))){
+            cur=new_token(TK_CONTROL,cur,p,2);
+            p+=2;
+            continue;
+        }
+
+        if(strncmp(p,"while",5)==0&&(!is_alnum(p[5]))){
+            cur=new_token(TK_CONTROL,cur,p,5);
+            p+=5;
+            continue;
+        }
+        
+        if(strncmp(p,"for",3)==0&&(!is_alnum(p[3]))){
+            cur=new_token(TK_CONTROL,cur,p,3);
+            p+=3;
+            continue;
+        }        
+
+        if(strncmp(p,"else",4)==0&&(!is_alnum(p[4]))){
+            cur=new_token(TK_CONTROL,cur,p,4);
+            p+=4;
+            continue;
+        }
+
         if('a'<=*p&&*p<='z'){
             cur=new_token(TK_IDENT,cur,p,0);
             char*q=p;
@@ -193,12 +225,93 @@ Node*program(){
 Node*stmt(){
     Node*node;
 
+    if(token->kind==TK_CONTROL){
+        if(consume_control("if")){
+            expect("(");
+            Token*tok=token;
+            Token*Tok=token;
+            while(1){
+                
+                if(Tok->kind==TK_CONTROL&&strncmp("if",Tok->str,2)){
+                    break;
+                }
+                if(Tok->kind==TK_CONTROL&&strncmp(Tok->str,"else",4)){
+                    break;
+                }
+                if(Tok->kind==TK_EOF){
+                    break;
+                }
+                tok=Tok;
+                Tok=Tok->next;
+            }
+            if(tok->next->kind==TK_CONTROL&&strncmp(tok->next->str,"else",4)==0){
+                node=calloc(1,sizeof(Node));
+                node->kind=ND_IFELSE;
+                node->lhs=expr();
+                expect(")");
+                node->rhs=stmt();
+                token=token->next;//consume(token->str=="else")
+                node->rhs=new_binary(ND_ELSE,node->rhs,stmt());
+
+                return node;
+            }else{
+                node=calloc(1,sizeof(Node));
+                node->kind=ND_IF;
+                node->lhs=expr();
+                expect(")");
+                node->rhs=stmt();
+
+                return node;
+            }
+            if(consume_control("else")){
+                node=new_binary(ND_ELSE,node,expr());
+            }
+        }
+        if(consume_control("while")){
+            expect("(");
+            node=calloc(1,sizeof(Node));
+            node->kind=ND_WHILE;
+            node->lhs=expr();
+            expect(")");
+            node->rhs=stmt();
+
+            return node;
+        }
+        
+        if(consume_control("for")){
+            expect("(");
+            node=calloc(1,sizeof(Node));
+            node->kind=ND_FOR;
+            node->lhs=calloc(1,sizeof(Node));
+            if(!(token->kind==TK_RESERVED&&strncmp(token->str,";",1)==0)){
+                node->lhs->lhs=expr();
+            }
+            expect(";");
+            node->lhs->rhs=calloc(1,sizeof(Node));
+            if(!(token->kind==TK_RESERVED&&strncmp(token->str,";",1)==0)){
+                node->lhs->rhs->lhs=expr();
+            }
+            expect(";");
+            if(!(token->kind==TK_RESERVED&&strncmp(token->str,";",1)==0)){
+                node->lhs->rhs->rhs=expr();
+            }
+            expect(")");
+            node->rhs=stmt();
+
+            return node;
+        }
+    }
+
     if(consume_return()){
         node=calloc(1,sizeof(Node));
         node->kind=ND_RETURN;
         node->lhs=expr();
     }else{
         node=expr();
+    }
+
+    if(token->kind=TK_CONTROL&&strncmp(token->str,"else",4)==0){
+        return node;
     }
 
     if(!consume(";")){

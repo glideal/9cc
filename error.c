@@ -2,6 +2,7 @@
 #include<stdarg.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 
 extern char* user_input;
 
@@ -20,6 +21,11 @@ void error_at(char*loc,char*fmt,...){
     va_start(ap,fmt);
 
     int pos=loc-user_input;
+
+    if(pos>strlen(user_input)){
+        printf("pos is too long\n");
+        exit(1);
+    }
     
     fprintf(stderr,"%s\n",user_input);
     fprintf(stderr,"%*s",pos,"");//pos個の空白を出力

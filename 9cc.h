@@ -66,6 +66,8 @@ typedef enum{
     ND_WHILE,
     ND_FOR,
 
+    ND_BLOCK,
+
     ND_ADD,
     ND_SUB,
     ND_MUL,

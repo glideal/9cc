@@ -62,6 +62,11 @@ assert 42 'num=0;while(num<42)num=num+1;return num;'
 assert 42 'for(num=1;num<=42;num=num+1) answer=num;return answer;'
 assert 42 'num=0; for(;num<=42;num=num+1) answer=num;return answer;'
 
+assert 42 'if(2*5>9){num=3;val=num*7;return val*2;};'
+assert 42 'if(2*5<9)39 else {num=3;val=num*7;return val*2;};'
+assert 42 'for(i=0;i<5;i=i+1){if(i==2){num=19;};if(i==4){val=23;};};return num+val;'
+assert 42 'num=0;i=0;while(i<42){num=num+1;i=i+1;};return num;'
+
 
 
 echo OK

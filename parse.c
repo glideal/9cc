@@ -95,7 +95,7 @@ Token *tokenize(){//ok//change for 'error_at' function//kk
             continue;
         }
 
-        if(strchr("+-*/()<>=;",*p)){
+        if(strchr("+-*/()<>=;{}",*p)){
             cur=new_token(TK_RESERVED,cur,p,1);
             p++;;
             continue;
@@ -224,6 +224,26 @@ Node*program(){
 
 Node*stmt(){
     Node*node;
+
+    if(consume("{")){
+        Node*blockcur=calloc(1,sizeof(Node));
+        Node*blockhead=calloc(1,sizeof(Node));
+        blockhead->kind=ND_BLOCK;
+        blockhead->lhs=blockcur;
+        node=blockhead;
+        //while(token->kind != TK_RESERVED || strlen("{")!=token->len||memcmp(token->str,"{",token->len)){
+        while(!(token->kind==TK_RESERVED&&memcmp(token->str,"}",token->len)==0)){
+
+            blockcur->rhs=stmt();
+            blockcur->lhs=calloc(1,sizeof(Node));
+            blockcur=blockcur->lhs;
+
+        }
+        expect("}");
+        
+        expect(";");
+        return node;
+    }
 
     if(token->kind==TK_CONTROL){
         if(consume_control("if")){

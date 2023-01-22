@@ -1,8 +1,4 @@
 #include "9cc.h"
-#include<stdlib.h>
-#include<string.h>
-#include<ctype.h>
-#include<stdio.h>
 
 
 char* user_input;
@@ -10,31 +6,14 @@ char* user_input;
 Token *token;
 
 LVar*locals;
-
-bool consume_control(char* op){//remove ';'
-    if(token->kind != TK_CONTROL || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
-        return false;
-    }
-    token=token->next;
-    return true;
-}
-
-bool consume(char* op){//remove ';'
-    if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
-        return false;
-    }
-    token=token->next;
-    return true;
-}
-
-void expect(char* op){//remove '\n' ok
+void expect(char* op){
     if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
         error_at(token->str,"expected \"%s\"",op);
     }
     token=token->next;
 }
 
-int expect_number(){//remove '\n' ok//kk
+int expect_number(){
     if(token->kind!=TK_NUM){
         error_at(token->str,"数ではありません");
     }
@@ -43,11 +22,11 @@ int expect_number(){//remove '\n' ok//kk
     return val;
 }
 
-bool at_eof(){//ok//kk
+bool at_eof(){
     return token->kind==TK_EOF;
 }
 
-Token *new_token(TokenKind kind,Token *cur,char *str,int len){//ok//kk
+Token *new_token(TokenKind kind,Token *cur,char *str,int len){
     Token *tok=calloc(1,sizeof(Token));
     tok->kind=kind;
     tok->str=str;
@@ -56,18 +35,16 @@ Token *new_token(TokenKind kind,Token *cur,char *str,int len){//ok//kk
     return tok;
 }
 
-bool startswith(char*p,char*q){//kk
+bool startswith(char*p,char*q){
     return memcmp(p,q,strlen(q))==0;
 }
 
-char*StrIdent(char*s,char** endptr){
+void StrIdent(char*s,char** endptr){
     char*str=calloc(100,sizeof(char));
-    for(int i=0;('a'<=*s&&*s<='z');s++){
-        str[i]=*s;
-        i++;
+    for(;('a'<=*s&&*s<='z');s++){
+
     }
     *endptr=s;
-    return &str[0];
 }
 
 int is_alnum(char c){
@@ -78,8 +55,9 @@ int is_alnum(char c){
 
 }
 
-Token *tokenize(){//ok//change for 'error_at' function//kk
-    char*p=user_input;//change for 'error_at' function
+
+Token *tokenize(){
+    char*p=user_input;
     Token head;
     head.next=NULL;
     Token *cur=&head;
@@ -95,13 +73,11 @@ Token *tokenize(){//ok//change for 'error_at' function//kk
             continue;
         }
 
-        if(strchr("+-*/()<>=;{}",*p)){
+        if(strchr("+-*/()<>=;{},",*p)){
             cur=new_token(TK_RESERVED,cur,p,1);
             p++;;
             continue;
         }
-
-       
 
         if(isdigit(*p)){
             cur = new_token(TK_NUM,cur,p,0);
@@ -118,40 +94,60 @@ Token *tokenize(){//ok//change for 'error_at' function//kk
         }
 
         if(strncmp(p,"if",2)==0&&(!is_alnum(p[2]))){
-            cur=new_token(TK_CONTROL,cur,p,2);
+            cur=new_token(TK_IF,cur,p,2);
             p+=2;
+            continue;
+        }        
+
+        if(strncmp(p,"else",4)==0&&(!is_alnum(p[4]))){
+            cur=new_token(TK_ELSE,cur,p,4);
+            p+=4;
             continue;
         }
 
         if(strncmp(p,"while",5)==0&&(!is_alnum(p[5]))){
-            cur=new_token(TK_CONTROL,cur,p,5);
+            cur=new_token(TK_WHILE,cur,p,5);
             p+=5;
             continue;
         }
         
         if(strncmp(p,"for",3)==0&&(!is_alnum(p[3]))){
-            cur=new_token(TK_CONTROL,cur,p,3);
+            cur=new_token(TK_FOR,cur,p,3);
             p+=3;
             continue;
-        }        
+        }
 
-        if(strncmp(p,"else",4)==0&&(!is_alnum(p[4]))){
-            cur=new_token(TK_CONTROL,cur,p,4);
-            p+=4;
-            continue;
+        if('a'<=*p&&*p<='z'){
+            char*q=p;
+            StrIdent(p,&p);
+            if(*p=='('){
+                cur=new_token(TK_FUNCTION,cur,q,0);
+                cur->len=p-q;
+                /*
+                printf("TK_FUCTION\n");
+                printf("p-q=%ld\n",p-q);
+                printf("str=%s\n",cur->str);
+                printf("len=%d\n",cur->len);
+                */
+                continue;
+            }else{
+                p=q;
+            }
         }
 
         if('a'<=*p&&*p<='z'){
             cur=new_token(TK_IDENT,cur,p,0);
             char*q=p;
-            cur->str=StrIdent(p,&p);
+            StrIdent(p,&p);
             cur->len=p-q;
+            //printf("%d\n",cur->len);
             continue;
         }
 
         error_at(p,"invalid number\n");//change for 'error_at' function1
     }
     new_token(TK_EOF,cur,p,0);
+    //TokenCheck(head);
     return head.next;
 }
 
@@ -189,13 +185,12 @@ Token* consume_ident(){
 }
 
 
-LVar *find_lvar(Token*tok){
-    for(LVar *var=locals;var;var=var->next){
-        if(var->len==tok->len&&!memcmp(tok->str,var->name,var->len)){
-            return var;
-        }
+bool consume(char* op){
+    if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
+        return false;
     }
-    return NULL;
+    token=token->next;
+    return true;
 }
 
 bool consume_return(){
@@ -205,6 +200,26 @@ bool consume_return(){
     token=token->next;
     return true;
 }
+
+Token* consume_kind(TokenKind kind){
+    if (token->kind != kind){
+        return NULL;
+    }
+    Token* tok=token;
+    token=token->next;
+    return tok;
+}
+
+
+LVar *find_lvar(Token*tok){
+    for(LVar *var=locals;var;var=var->next){
+        if(var->len==tok->len&&!memcmp(tok->str,var->name,var->len)){//the variable exists, then return that variable
+            return var;
+        }
+    }
+    return NULL;
+}
+
 
 
 
@@ -222,121 +237,96 @@ Node*program(){
     code[i]=NULL;
 }
 
+// stmt    = expr ";"
+//        | "{" stmt* "}"
+//        | "return" expr ";"
+//        | "if" "(" expr ")" stmt ("else" stmt)?
+//        | "while" "(" expr ")" stmt
+//        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//        | "int" "*"* ident ";"
+
 Node*stmt(){
     Node*node;
 
     if(consume("{")){
-        Node*blockcur=calloc(1,sizeof(Node));
-        Node*blockhead=calloc(1,sizeof(Node));
-        blockhead->kind=ND_BLOCK;
-        blockhead->lhs=blockcur;
-        node=blockhead;
-        //while(token->kind != TK_RESERVED || strlen("{")!=token->len||memcmp(token->str,"{",token->len)){
-        while(!(token->kind==TK_RESERVED&&memcmp(token->str,"}",token->len)==0)){
-
-            blockcur->rhs=stmt();
-            blockcur->lhs=calloc(1,sizeof(Node));
-            blockcur=blockcur->lhs;
-
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_BLOCK;
+        /*
+        for(int i=0;!consume("}");i++){
+            node->block[i]=calloc(1,sizeof(Node));
+            node->block[i]=stmt();
         }
-        expect("}");
-        
+        */
+        node->block= calloc(300, sizeof(Node));
+        for(int i=0;!consume("}");i++){
+            if(i>300){
+                error("block flowover");
+            }
+            node->block[i]=stmt();
+        }
+        return node;
+    }
+
+    if(consume_kind(TK_IF)){
+        expect("(");
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_IF;
+        node->lhs=expr();
+        expect(")");
+        node->rhs=stmt();
+        if(consume_kind(TK_ELSE)){
+            node->rhs=new_binary(ND_ELSE,node->rhs,stmt());
+        }
+        return node;
+    }
+
+    if(consume_kind(TK_WHILE)){
+        expect("(");
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_WHILE;
+        node->lhs=expr();
+        expect(")");
+        node->rhs=stmt();
+        return node;
+    }
+
+    if(consume_kind(TK_FOR)){
+        expect("(");
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_FOR;
+        node->lhs=calloc(1,sizeof(Node));
+        node->lhs->lhs=calloc(1,sizeof(Node));
+        node->lhs->rhs=calloc(1,sizeof(Node));
+        node->rhs=calloc(1,sizeof(Node));
+        if(!consume(";")){
+            node->lhs->lhs->lhs=expr();
+            expect(";");
+        }
+
+        if(!consume(";")){
+            node->lhs->lhs->rhs=expr();
+            expect(";");
+        }
+
+        if(!consume(")")){
+            node->lhs->rhs=expr();
+            expect(")");
+        }
+        node->rhs=stmt();
+        return node;
+
+    }
+
+    if(consume_kind(TK_RETURN)){
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_RETURN;
+        node->lhs=expr();
         expect(";");
         return node;
     }
 
-    if(token->kind==TK_CONTROL){
-        if(consume_control("if")){
-            expect("(");
-            Token*tok=token;
-            Token*Tok=token;
-            while(1){
-                
-                if(Tok->kind==TK_CONTROL&&strncmp("if",Tok->str,2)){
-                    break;
-                }
-                if(Tok->kind==TK_CONTROL&&strncmp(Tok->str,"else",4)){
-                    break;
-                }
-                if(Tok->kind==TK_EOF){
-                    break;
-                }
-                tok=Tok;
-                Tok=Tok->next;
-            }
-            if(tok->next->kind==TK_CONTROL&&strncmp(tok->next->str,"else",4)==0){
-                node=calloc(1,sizeof(Node));
-                node->kind=ND_IFELSE;
-                node->lhs=expr();
-                expect(")");
-                node->rhs=stmt();
-                token=token->next;//consume(token->str=="else")
-                node->rhs=new_binary(ND_ELSE,node->rhs,stmt());
-
-                return node;
-            }else{
-                node=calloc(1,sizeof(Node));
-                node->kind=ND_IF;
-                node->lhs=expr();
-                expect(")");
-                node->rhs=stmt();
-
-                return node;
-            }
-            if(consume_control("else")){
-                node=new_binary(ND_ELSE,node,expr());
-            }
-        }
-        if(consume_control("while")){
-            expect("(");
-            node=calloc(1,sizeof(Node));
-            node->kind=ND_WHILE;
-            node->lhs=expr();
-            expect(")");
-            node->rhs=stmt();
-
-            return node;
-        }
-        
-        if(consume_control("for")){
-            expect("(");
-            node=calloc(1,sizeof(Node));
-            node->kind=ND_FOR;
-            node->lhs=calloc(1,sizeof(Node));
-            if(!(token->kind==TK_RESERVED&&strncmp(token->str,";",1)==0)){
-                node->lhs->lhs=expr();
-            }
-            expect(";");
-            node->lhs->rhs=calloc(1,sizeof(Node));
-            if(!(token->kind==TK_RESERVED&&strncmp(token->str,";",1)==0)){
-                node->lhs->rhs->lhs=expr();
-            }
-            expect(";");
-            if(!(token->kind==TK_RESERVED&&strncmp(token->str,";",1)==0)){
-                node->lhs->rhs->rhs=expr();
-            }
-            expect(")");
-            node->rhs=stmt();
-
-            return node;
-        }
-    }
-
-    if(consume_return()){
-        node=calloc(1,sizeof(Node));
-        node->kind=ND_RETURN;
-        node->lhs=expr();
-    }else{
-        node=expr();
-    }
-
-    if(token->kind=TK_CONTROL&&strncmp(token->str,"else",4)==0){
-        return node;
-    }
-
-    if(!consume(";")){
-        error_at(token->str,"';'ではありません");
-    }
+    node=expr();
+    expect(";");
     return node;
 }
 
@@ -439,10 +429,10 @@ Node*primary(){//kk
         expect(")");
         return node;
     }
-    Token*tok=consume_ident();
+    Token*tok=consume_kind(TK_IDENT);
 
-    //printf("OK1\n");
     if(tok){
+        //variable
         Node*node=calloc(1,sizeof(Node));
         node->kind=ND_LVAR;
 
@@ -462,7 +452,29 @@ Node*primary(){//kk
             locals=lvar;
         }
         return node;
-    }
+    }/*
+    if(token->kind==TK_FUNCTION){
+        Node*node=calloc(1,sizeof(Node));
+        node->kind=ND_FUNCTION;
+        char*s=token->str;
+        char str[100];
+        memset(str,0,100);
+        for(int i=0;i<token->len;i++){
+            str[i]=*s;
+            s++;
+        }
+        node->name=str;
+        printf("%s",node->name);
+        token=token->next;
+        
+        expect("(");
+        
+
+
+        return node;
+    }*/
+
+
 
     return new_num(expect_number());
 }

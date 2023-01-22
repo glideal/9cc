@@ -1,5 +1,4 @@
 #include "9cc.h"
-#include <stdio.h>
 
 static int control_count=0;
 
@@ -21,6 +20,8 @@ void gen(Node*node){//kk
         printf("  ret\n");
         return;
     }
+    int screen_count=control_count;
+    control_count++;
     
     switch(node->kind){
         case ND_NUM:{
@@ -51,42 +52,21 @@ void gen(Node*node){//kk
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
 
-            int screen_count=control_count;
-            control_count++;
-
-            printf("  je .Lend%03d\n",screen_count);
-
-            gen(node->rhs);
-
-            printf(".Lend%03d:\n",screen_count);
-
-            return;
-        }
-        case ND_IFELSE:{
-            gen(node->lhs);
-
-            printf("  pop rax\n");
-            printf("  cmp rax, 0\n");
-
-            int screen_count=control_count;
-            control_count++;
-
             printf("  je .Lelse%03d\n",screen_count);
-
-            gen(node->rhs->lhs);
-
-            printf("  jmp .Lend%03d\n",screen_count);
-
-            printf(".Lelse%03d:\n",screen_count);
-            gen(node->rhs->rhs);
-
-            printf(".Lend%03d:\n",screen_count);
+            if(node->rhs->kind==ND_ELSE){
+                gen(node->rhs->lhs);
+                printf(".Lelse%03d:\n",screen_count);
+                gen(node->rhs->rhs);
+            }else{
+                gen(node->rhs);
+                printf(".Lelse%03d:\n",screen_count);
+                //ifだけでも"".Lelse%03d%:でおわる"
+            }
 
             return;
         }
         case ND_WHILE:{
-            int screen_count=control_count;
-            control_count++;
+
             printf(".Lbegin%03d:\n",screen_count);
             gen(node->lhs);
             
@@ -101,14 +81,13 @@ void gen(Node*node){//kk
             return;
         }
         case ND_FOR:{
-            if(node->lhs->lhs){
-            gen(node->lhs->lhs);
+            if(node->lhs->lhs->lhs){
+                gen(node->lhs->lhs->lhs);
             }
-            int screen_count=control_count;
-            control_count++;
+
             printf(".Lbegin%03d:\n",screen_count);
-            if(node->lhs->rhs->lhs){
-            gen(node->lhs->rhs->lhs);
+            if(node->lhs->lhs->rhs){
+                gen(node->lhs->lhs->rhs);
             }
 
             printf("  pop rax\n");
@@ -117,8 +96,8 @@ void gen(Node*node){//kk
             printf("  je .Lend%03d\n",screen_count);
 
             gen(node->rhs);
-            if(node->lhs->rhs->rhs){
-            gen(node->lhs->rhs->rhs);
+            if(node->lhs->rhs){
+                gen(node->lhs->rhs);
             }
 
             printf("  jmp .Lbegin%03d\n",screen_count);
@@ -128,9 +107,9 @@ void gen(Node*node){//kk
             return;
         }  
         case ND_BLOCK:{
-            for(;node->lhs->rhs;node=node->lhs){
-                gen(node->lhs->rhs);
-                printf("  pop rax\n");
+            for(int i=0;node->block[i];i++){
+                gen(node->block[i]);
+                //printf("  pop rax\n");
             }
 
             return;

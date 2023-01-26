@@ -2,20 +2,21 @@
 
 
 char* user_input;
+char**input;
 
 Token *token;
 
 LVar*locals;
 void expect(char* op){
     if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
-        error_at(token->str,"expected \"%s\"",op);
+        error_at(token->line,"expected \"%s\"",op);
     }
     token=token->next;
 }
 
 int expect_number(){
     if(token->kind!=TK_NUM){
-        error_at(token->str,"数ではありません");
+        error_at(token->line,"数ではありません");
     }
     int val=token->val;
     token=token->next;
@@ -61,7 +62,12 @@ Token *tokenize(){
     Token head;
     head.next=NULL;
     Token *cur=&head;
+    int line=0;
     while(*p){
+        //printf("line=%d\n",line);
+        if(*p=='\n'){
+            line++;
+        }
         if(isspace(*p)){
             p++;
             continue;
@@ -69,12 +75,14 @@ Token *tokenize(){
 
         if(startswith(p,"==")||startswith(p,"<=")||startswith(p,">=")||startswith(p,"!=")){
             cur=new_token(TK_RESERVED,cur,p,2);
+            cur->line=line;
             p+=2;
             continue;
         }
 
         if(strchr("+-*/()<>=;{},",*p)){
             cur=new_token(TK_RESERVED,cur,p,1);
+            cur->line=line;
             p++;;
             continue;
         }
@@ -84,55 +92,43 @@ Token *tokenize(){
             char*q=p;
             cur->val = strtol(p,&p,10);
             cur->len=p-q;
+            cur->line=line;
             continue;
         }
 
         if(strncmp(p,"return",6)==0&&(!is_alnum(p[6]))){
             cur=new_token(TK_RETURN,cur,p,6);
+            cur->line=line;
             p+=6;
             continue;
         }
 
         if(strncmp(p,"if",2)==0&&(!is_alnum(p[2]))){
             cur=new_token(TK_IF,cur,p,2);
+            cur->line=line;
             p+=2;
             continue;
         }        
 
         if(strncmp(p,"else",4)==0&&(!is_alnum(p[4]))){
             cur=new_token(TK_ELSE,cur,p,4);
+            cur->line=line;
             p+=4;
             continue;
         }
 
         if(strncmp(p,"while",5)==0&&(!is_alnum(p[5]))){
             cur=new_token(TK_WHILE,cur,p,5);
+            cur->line=line;
             p+=5;
             continue;
         }
         
         if(strncmp(p,"for",3)==0&&(!is_alnum(p[3]))){
             cur=new_token(TK_FOR,cur,p,3);
+            cur->line=line;
             p+=3;
             continue;
-        }
-
-        if('a'<=*p&&*p<='z'){
-            char*q=p;
-            StrIdent(p,&p);
-            if(*p=='('){
-                cur=new_token(TK_FUNCTION,cur,q,0);
-                cur->len=p-q;
-                /*
-                printf("TK_FUCTION\n");
-                printf("p-q=%ld\n",p-q);
-                printf("str=%s\n",cur->str);
-                printf("len=%d\n",cur->len);
-                */
-                continue;
-            }else{
-                p=q;
-            }
         }
 
         if('a'<=*p&&*p<='z'){
@@ -140,16 +136,17 @@ Token *tokenize(){
             char*q=p;
             StrIdent(p,&p);
             cur->len=p-q;
+            cur->line=line;
             //printf("%d\n",cur->len);
             continue;
         }
 
-        error_at(p,"invalid number\n");//change for 'error_at' function1
+        error_at(line,"invalid number\n");//change for 'error_at' function1
     }
     new_token(TK_EOF,cur,p,0);
     //TokenCheck(head);
     return head.next;
-}
+    }
 
 /*_____________________________________________________Node____________________________________________________________*/
 
@@ -175,26 +172,9 @@ Node*new_num(int val){//kk
     return node;
 }
 
-Token* consume_ident(){
-    if(token->kind!=TK_IDENT){
-        return NULL;
-    }
-    Token*tok=token;
-    token=token->next;
-    return tok;
-}
-
 
 bool consume(char* op){
     if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
-        return false;
-    }
-    token=token->next;
-    return true;
-}
-
-bool consume_return(){
-    if(token->kind!=TK_RETURN){
         return false;
     }
     token=token->next;
@@ -231,10 +211,39 @@ Node*program(){
 
     int i=0;
     while(!at_eof()){
-        code[i]=stmt();
+        code[i]=func();
         i++;
     }
     code[i]=NULL;
+}
+
+Node*func(){
+    Node*node;
+    Token* tok=consume_kind(TK_IDENT);
+    if(tok==NULL){
+        error("not function\n");
+    }
+    expect("(");
+    node=calloc(1,sizeof(Node));
+    node->kind=ND_FUNC_DEF;
+    node->funcname=calloc(100,sizeof(char));
+    memcpy(node->funcname,tok->str,tok->len);
+    node->arg=calloc(6,sizeof(Node));
+    for(int i=0;;i++){
+        if(i>=6){
+            error("stack overflow");
+        }
+        if(consume(")")){//func(){...}
+            break;
+        }
+        node->arg[i]=expr();
+        if(consume(")")){//func(a,b,...){...}
+            break;
+        }
+        expect(",");
+    }
+    node->lhs=stmt();
+    return node;
 }
 
 // stmt    = expr ";"
@@ -244,7 +253,6 @@ Node*program(){
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //        | "int" "*"* ident ";"
-
 Node*stmt(){
     Node*node;
 
@@ -318,15 +326,20 @@ Node*stmt(){
     }
 
     if(consume_kind(TK_RETURN)){
+        //printf("8\n");
         node=calloc(1,sizeof(Node));
         node->kind=ND_RETURN;
         node->lhs=expr();
+        //printf("10\n");
         expect(";");
         return node;
     }
-
     node=expr();
-    expect(";");
+    //printf("6\n");
+    if(!(node->kind==ND_FUNC_DEF)){
+        //printf("ok_def\n");
+        expect(";");
+    }
     return node;
 }
 
@@ -338,7 +351,9 @@ Node*expr(){
 Node*assign(){
     Node*node=equality();
     if(consume("=")){
+        //printf("3\n");
         node=new_binary(ND_ASSIGN,node,assign());
+        //printf("5\n");
     }
     return node;
 }
@@ -432,17 +447,35 @@ Node*primary(){//kk
     Token*tok=consume_kind(TK_IDENT);
 
     if(tok){
+        //function
+        if(consume("(")){
+            Node*node=calloc(1,sizeof(Node));
+            node->kind=ND_FUNC_CALL;
+            node->funcname=calloc(100,sizeof(char));
+            memcpy(node->funcname,tok->str,tok->len);
+            node->arg=calloc(6,sizeof(Node));
+            if(consume(")")){
+                return node;
+            }
+            for(int i=0;;i++){
+                node->arg[i]=expr();
+                if(consume(")")){
+                    return node;
+                }
+                expect(",");
+            }
+        }
+
         //variable
         Node*node=calloc(1,sizeof(Node));
         node->kind=ND_LVAR;
-
-
         LVar*lvar=find_lvar(tok);
-
         if(lvar){
+            //printf("9\n");
             node->offset=lvar->offset;
         }
         else{
+            //printf("2\n");
             lvar=calloc(1,sizeof(LVar));
             lvar->next=locals;
             lvar->name=tok->str;
@@ -452,27 +485,7 @@ Node*primary(){//kk
             locals=lvar;
         }
         return node;
-    }/*
-    if(token->kind==TK_FUNCTION){
-        Node*node=calloc(1,sizeof(Node));
-        node->kind=ND_FUNCTION;
-        char*s=token->str;
-        char str[100];
-        memset(str,0,100);
-        for(int i=0;i<token->len;i++){
-            str[i]=*s;
-            s++;
-        }
-        node->name=str;
-        printf("%s",node->name);
-        token=token->next;
-        
-        expect("(");
-        
-
-
-        return node;
-    }*/
+    }
 
 
 

@@ -3,12 +3,19 @@
 extern Node*code[100];
 
 void TokenCheck(Token head){
-    for(Token*t=head.next;!(t->kind==TK_IDENT||t->kind==TK_EOF);t=t->next){
+    for(Token*t=head.next;!(t->kind==TK_EOF);t=t->next){
+        printf("line=%d ",t->line);
         printf("%s\n",t->str);
+        printf("_________________________\n");
     }
 }
 
 void Check(){
+    printf("\n");
+    printf("\n");
+    printf("\n");
+    
+    printf("Node Check\n");
     for(int i=0;code[i];i++){
         printf("_________________________code[%d]__\n",i);
         CheckNode(code[i]);
@@ -16,8 +23,9 @@ void Check(){
 }
 
 void CheckNode(Node* node){
-    printf("_start____________________________\n\n");
     if(node){
+        printf("_____start________________________\n\n");
+
         switch(node->kind){
             case ND_IF:{
                 printf(" %s\n","if");
@@ -69,8 +77,31 @@ void CheckNode(Node* node){
                 printf(" %s\n","variable");
                 break;
             }
-            case ND_FUNCTION:{
-                printf(" %s\n","fanction");
+            case ND_FUNC_CALL:{
+                printf("fanction call %s\n",node->funcname);
+                break;
+            }case ND_FUNC_DEF:{
+                printf(" %s\n","fanction definition");
+                if(node->arg[0]!=NULL){
+                    printf("arguments are\n");
+                }
+                for(int i=0;node->arg[i];i++){
+                    switch(node->arg[i]->kind){
+                        case ND_NUM:{
+                            printf("num[%d]==%d ",i,node->arg[i]->val);
+                            break;
+                        }
+                        case ND_LVAR:{
+                            printf("variable[%d]==%d ",i,node->arg[i]->offset);
+                            break;
+                        }
+                        default:{
+                            error("argument of function '%s' are not correct\n",node->funcname);
+                            exit(1);
+                        }
+                    }
+                }
+                printf("\n");
                 break;
             }
             case ND_EQ:{

@@ -5,4 +5,11 @@ assert(){
     echo "_____________________________________"
 }
 
-assert 'if(2*4==7){if(5+2==7){num=3;}else {num=4;}}else{return 42;}'
+
+
+assert 'main(){
+    return sum(1,2,3,4,5,6)
+}
+sum(a,b,c,d,e,f){
+    return a+b+c+d+e+f;
+}'

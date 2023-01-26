@@ -1,8 +1,14 @@
 #include "9cc.h"
 
 static int control_count=0;
+static int main_count=0;
+
+char*arg_System_V_AMD64_ABI[]={"rdi","rsi","rdx","rcx","r8","r9",};
 
 void gen_lval(Node*node){
+    if(node->kind==ND_FUNC_CALL){
+
+    }
     if (node->kind!=ND_LVAR){
         error("the left value of assignment is not a variable");
     }
@@ -20,6 +26,7 @@ void gen(Node*node){//kk
         printf("  ret\n");
         return;
     }
+    int arg_count=0;
     int screen_count=control_count;
     control_count++;
     
@@ -106,6 +113,58 @@ void gen(Node*node){//kk
 
             return;
         }  
+
+        case ND_FUNC_DEF:{
+            if(memcmp(node->funcname,"main",4)==0){
+                if(main_count==0){
+                    //printf(".global main\n");
+                    printf("main:\n");
+                    printf("  push rbp\n");
+                    printf("  mov rbp, rsp\n");
+                    printf("  sub rsp, %d\n",8*26);
+                    main_count++;
+                }else{
+                    error("more than one function 'many' is here" );
+                }
+            }else{
+                printf("%s:\n",node->funcname);
+                printf("  sub rsp, %d\n",arg_count);
+            }
+            for(int i=0;node->arg[i];i++){
+                printf("  mov rax, rbp\n");
+                printf("  sub rax, %d\n",node->arg[i]->offset);
+                printf("  mov [rax], %s\n",arg_System_V_AMD64_ABI[i]);
+            }
+            gen(node->lhs);
+
+            return;
+        }
+
+        case ND_FUNC_CALL:{
+            for(int i=0;node->arg[i];i++){
+                gen(node->arg[i]);
+                arg_count++;
+            }
+            for(int i=arg_count-1;i>=0;i--){
+                printf("  pop %s\n",arg_System_V_AMD64_ABI[i]);
+            }
+            printf("  mov rax, rsp\n");
+            printf("  and rax, 15\n");
+            printf("  jnz .L.call.%03d\n",screen_count);
+            // printf("  mov rax, 0\n");
+            printf("  call %s\n",node->funcname);
+            printf("  jmp .Lend%03d\n",screen_count);
+            printf(".L.call.%03d:\n",screen_count);
+            printf("  sub rsp, 8\n");
+            //printf("  mov rax, 0\n"); // ALに0を入れる。
+            printf("  call %s\n",node->funcname);
+            printf("  add rsp, 8\n");
+            printf(".Lend%03d:\n",screen_count);
+            printf("  push rax\n");
+
+            return;
+        }
+
         case ND_BLOCK:{
             for(int i=0;node->block[i];i++){
                 gen(node->block[i]);

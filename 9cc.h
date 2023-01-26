@@ -16,7 +16,6 @@ typedef enum {
     TK_WHILE,
     TK_FOR, 
     TK_IDENT,     //識別子
-    TK_FUNCTION,  //関数
     TK_NUM,       //integer token
     TK_RETURN,
     TK_EOF,       //token to remark end of input
@@ -33,33 +32,22 @@ struct Token{
     int val;
     char *str;
     int len;
+    int line;
 };
 
 //Token *token;
-
+void error_line(char*p);
+Token*error_tokenize();
 void error(char* fmt,...);
-
-void error_at(char*loc,char*fmt,...);
-
-bool consume(char* op);
-
-Token*consume_ident();
+void error_at(int line,char*fmt,...);
 
 void expect(char* op);
-
 int expect_number();
-
 bool at_eof();
-
 Token *new_token(TokenKind kind,Token *cur,char *str,int len);
-
 bool startswith(char*p,char*q);
-
 void StrIdent(char* s,char** endptr);
-
-
 int is_alnum(char c);
-
 Token *tokenize();
 
 /*______________________________________________Node_________________________________________________*/
@@ -78,7 +66,8 @@ typedef enum{
     ND_DIV,
     ND_ASSIGN,// =        //10
     ND_LVAR,   // ローカル変数
-    ND_FUNCTION,
+    ND_FUNC_CALL,
+    ND_FUNC_DEF,
     ND_EQ,
     ND_NE,
     ND_LT,//15
@@ -96,16 +85,15 @@ struct Node{
     Node*lhs;
     Node*rhs;
     Node**block;
-    char*name;
+    Node**arg;
+    char*funcname;
     int val;
     int offset;
 };
 
 Node*new_node(NodeKind kind);
-
-Node*new_binary(NodeKind kind,Node*lhs,Node*rhs);
-
 Node*new_num(int val);
+Node*new_binary(NodeKind kind,Node*lhs,Node*rhs);
 
 typedef struct LVar LVar;
 
@@ -127,9 +115,11 @@ struct Func{
 
 LVar *find_lvar(Token*tok);
 
-bool consume_return();
+bool consume(char* op);
+Token* consume_kind(TokenKind kind);
 
 Node*program();
+Node*func();
 Node*stmt();
 Node*expr();
 Node*assign();

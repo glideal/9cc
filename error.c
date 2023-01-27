@@ -1,47 +1,68 @@
 #include "9cc.h"
 
 extern char* user_input;
-extern char**input;
-void error_line(char*p){
+extern char** input;
+void error_line(int argc,char*p){
+    /*
+    int line=0;
+    int row=0;
+    for(int i=0;i<argc;i++){
+        if(*p=='\n'){
+            line++;
+            row=0;
+            continue;
+        }
+        printf("ok\n");
+        input[line][row]=*p;
+        printf("ok\n");
+        printf("%c\n",p[i]);
+        
+        row++;
+    }
+    */
+
 
     char*q=p;
     input=(char**)calloc(200,sizeof(char*));
 
     for(int i=0;*q;i++){
-        /*if(i==0){
-            input[0][0]=*q;
-        }*/
+        //if(i==0){
+        //    input[0][0]=*q;
+        //}
         //q++;
         //printf("ok1\n");
         input[i]=(char*)calloc(25,sizeof(char));
         //printf("ok2\n");
         for(int j=0;*q;j++){
-            /*if(i==0&&j==0){
-                j=1;
-            }*/
+            //if(i==0&&j==0){
+            //    j=1;
+            //}
             if(*q=='\n'){
                 //printf("ok new line_%c\n",*q);
                 input[i][j]='\0';
                 break;
             }
-            // printf("ok3_%c ",*q);
-            // printf("(i,j)=(%d,%d)\n",i,j);
+            printf("ok3_%c ",*q);
+            printf("(i,j)=(%d,%d)\n",i,j);
             input[i][j]=*q;
             q++;
         }
-        //printf("ok0000000\n");
+        printf("ok0000000\n");
+        
         if(!(*q)){
             break;
         }
         q++;
     }
+
     // printf("ok|||||||||||||||\n");
-/*
+
     for(int i = 0; input[i][0]; i++) {
         
         for(int j = 0; input[i][j]!='\0'; j++) {
             printf("%c",input[i][j]);
         }
+        printf("\n");
         
 
         //上下のいずれかを使う
@@ -49,7 +70,7 @@ void error_line(char*p){
         //printf("%s",input[i]);
         //printf("\n");
     }
-*/
+
 
 }
 

@@ -1,7 +1,7 @@
 #include "9cc.h"
 
 extern char* user_input;
-extern char**input;
+extern char** input;
 extern Token*token;
 extern Node*code[100];
 extern LVar*locals;
@@ -14,8 +14,8 @@ int main(int argc, char**argv){//ok//kk
     //printf("ok\n");
     //change for 'error_at' function
     //input=calloc(100,sizeof(char));
-
-    error_line(argv[1]);
+    error_line(argc,argv[1]);
+    printf("ok\n");
 
     char*p=user_input;
     //printf("ok\n");

@@ -2,7 +2,7 @@
 
 
 char* user_input;
-char**input;
+char** input;
 
 Token *token;
 

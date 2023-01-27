@@ -4,12 +4,15 @@ assert(){
     ./9cc "$input" 
     echo "_____________________________________"
 }
-
-
+# assert  'main(){
+#         num=21;
+#         return num;
+#     }'
 
 assert 'main(){
-    return sum(1,2,3,4,5,6)
+    return sum(1,2,3,4,5,6);
 }
 sum(a,b,c,d,e,f){
     return a+b+c+d+e+f;
 }'
+

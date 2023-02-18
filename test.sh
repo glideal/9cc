@@ -168,4 +168,20 @@ sub(a,b){
     return a-b;
 }'
 
+#fibonacci sequence
+assert 8 'main(){
+    c=6;
+    return fib(c);
+}
+fib(c){
+    a=1;
+    b=1;
+    for(i=0;i<c-2;i=i+1){
+        tmp=a+b;
+        a=b;
+        b=tmp;
+    }
+    return tmp;
+}'
+
 echo OK

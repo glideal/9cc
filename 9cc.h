@@ -64,15 +64,20 @@ typedef enum{
     ND_SUB,
     ND_MUL,
     ND_DIV,
+
     ND_ASSIGN,// =        //10
     ND_LVAR,   // ローカル変数
     ND_FUNC_CALL,
     ND_FUNC_DEF,
+
     ND_EQ,
     ND_NE,
     ND_LT,//15
     ND_LE,
     ND_RETURN,
+
+    ND_ADDR,//address
+    ND_DEREF,//dereference
     ND_NUM,
 }NodeKind;
 

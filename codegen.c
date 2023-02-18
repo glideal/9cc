@@ -7,9 +7,6 @@ extern int Nvar;
 char*arg_System_V_AMD64_ABI[]={"rdi","rsi","rdx","rcx","r8","r9",};
 
 void gen_lval(Node*node){
-    if(node->kind==ND_FUNC_CALL){
-
-    }
     if (node->kind!=ND_LVAR){
         error("the left value of assignment is not a variable");
     }
@@ -175,6 +172,19 @@ void gen(Node*node){//kk
             printf(".Lend%03d:\n",screen_count);
             printf("  push rax\n");
 
+            return;
+        }
+
+        case ND_ADDR:{
+            gen_lval(node->lhs);
+            return;
+        }
+
+        case ND_DEREF:{
+            gen(node->lhs);
+            printf("  pop rax\n");
+            printf("  mov rax, [rax]\n");
+            printf("  push rax\n");
             return;
         }
 

@@ -82,7 +82,7 @@ Token *tokenize(){
             continue;
         }
 
-        if(strchr("+-*/()<>=;{},",*p)){
+        if(strchr("+-*/()<>=;{}&,",*p)){
             cur=new_token(TK_RESERVED,cur,p,1);
             cur->line=line;
             p++;;
@@ -441,6 +441,20 @@ Node*unary(){//kk
     }
     if (consume("-")){
         return new_binary(ND_SUB,new_num(0),unary());
+    }
+    if(consume("&")){
+        Node*node;
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_ADDR;
+        node->lhs=unary();
+        return node;
+    }
+    if(consume("*")){
+        Node*node;
+        node=calloc(1,sizeof(Node));
+        node->kind=ND_DEREF;
+        node->lhs=unary();
+        return node;
     }
     return primary();
 }

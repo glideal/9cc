@@ -2,7 +2,7 @@
 
 extern char* user_input;
 extern char** input;
-void error_line(int argc,char*p){
+void error_line(char*p){
     /*
     int line=0;
     int row=0;
@@ -24,42 +24,36 @@ void error_line(int argc,char*p){
 
     char*q=p;
     input=(char**)calloc(200,sizeof(char*));
-
-    for(int i=0;*q;i++){
-        //if(i==0){
-        //    input[0][0]=*q;
-        //}
-        //q++;
-        //printf("ok1\n");
-        input[i]=(char*)calloc(25,sizeof(char));
-        //printf("ok2\n");
-        for(int j=0;*q;j++){
-            //if(i==0&&j==0){
-            //    j=1;
-            //}
-            if(*q=='\n'){
-                //printf("ok new line_%c\n",*q);
-                input[i][j]='\0';
-                break;
-            }
-            printf("ok3_%c ",*q);
-            printf("(i,j)=(%d,%d)\n",i,j);
-            input[i][j]=*q;
-            q++;
+    int i=0,j=0;
+    while(1){
+        if(j==0){
+            input[i]=(char*)calloc(100,sizeof(char));
         }
-        printf("ok0000000\n");
-        
-        if(!(*q)){
+        if(!*q){
+            input[i][j]='\0';
+            if(j!=0){
+                //to display input[][] after that,the last should definely be '\0'
+                static char term[1]={'\0'};
+                i++;
+                input[i]=term;
+            }
             break;
+        }
+        if(*q=='\n'){
+            input[i][j]='\0';
+            i++;
+            j=0;
+        }else{
+            input[i][j]=*q;
+            j++;
         }
         q++;
     }
-
     // printf("ok|||||||||||||||\n");
-
+/*
     for(int i = 0; input[i][0]; i++) {
         
-        for(int j = 0; input[i][j]!='\0'; j++) {
+        for(int j = 0; input[i][j]; j++) {//;input[i][j]!='\0';と同意
             printf("%c",input[i][j]);
         }
         printf("\n");
@@ -70,7 +64,7 @@ void error_line(int argc,char*p){
         //printf("%s",input[i]);
         //printf("\n");
     }
-
+*/
 
 }
 

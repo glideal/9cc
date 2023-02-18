@@ -36,7 +36,7 @@ struct Token{
 };
 
 //Token *token;
-void error_line(int argc,char*p);
+void error_line(char*p);
 Token*error_tokenize();
 void error(char* fmt,...);
 void error_at(int line,char*fmt,...);
@@ -85,7 +85,8 @@ struct Node{
     Node*lhs;
     Node*rhs;
     Node**block;
-    Node**arg;
+    Node**argv;
+    int argc;
     char*funcname;
     int val;
     int offset;

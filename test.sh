@@ -77,12 +77,12 @@ assert 21 'main(){
 # assert 42 'num;num=42;return num;'
 
 assert 42 'main(){
-        if(2*3>5)42;
+        if(2*3>5) return 42;
     }'
 assert 42 'main(){
         if(2*3==5)37;
-        else if(2*3<5)39; 
-        else 42;
+        else if(2*3<5) return 39; 
+        else return 42;
     }'
 # assert 42 'if(2*3>5)42;'
 # assert 42 'if(2*3==5)39; else 42;'
@@ -139,5 +139,33 @@ sum(a,b,c,d,e,f){
 }'
 
 
+assert 15 'main(){
+    num=5;
+    val=num+sum(1,2,3,4);
+    return val;
+    } 
+    sum(a,b,c,d){
+        return a+b+c+d;
+    }'
+
+assert 47 'main(){
+    x=5;
+    y=6;
+    z=2;
+    a=sum(x,y,z);
+    b=val(x,y,z);
+    return sub(b,a);
+}
+sum(a,b,c){
+    sum=a+b+c;
+    return sum;
+}
+val(a,b,c){
+    val=a*b*c;
+    return val;
+}
+sub(a,b){
+    return a-b;
+}'
 
 echo OK

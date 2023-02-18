@@ -6,7 +6,9 @@ char** input;
 
 Token *token;
 
-LVar*locals;
+LVar*locals[100];
+int cur_func=0;
+
 void expect(char* op){
     if(token->kind != TK_RESERVED || strlen(op)!=token->len||memcmp(token->str,op,token->len)){
         error_at(token->line,"expected \"%s\"",op);
@@ -192,7 +194,7 @@ Token* consume_kind(TokenKind kind){
 
 
 LVar *find_lvar(Token*tok){
-    for(LVar *var=locals;var;var=var->next){
+    for(LVar *var=locals[cur_func];var;var=var->next){
         if(var->len==tok->len&&!memcmp(tok->str,var->name,var->len)){//the variable exists, then return that variable
             return var;
         }
@@ -204,14 +206,18 @@ LVar *find_lvar(Token*tok){
 
 
 Node*program(){
-    LVar locals_head;
-    locals_head.next=NULL;
-    locals_head.offset=0;
-    locals=&locals_head;
+    // LVar locals_head;
+    // locals_head.next=NULL;
+    // locals_head.offset=0;
+    // locals=&locals_head;
 
     int i=0;
     while(!at_eof()){
         code[i]=func();
+        if(locals[cur_func]!=NULL){
+            code[i]->argc=(int)(locals[cur_func]->offset/8);
+        }
+        cur_func++;
         i++;
     }
     code[i]=NULL;
@@ -228,7 +234,8 @@ Node*func(){
     node->kind=ND_FUNC_DEF;
     node->funcname=calloc(100,sizeof(char));
     memcpy(node->funcname,tok->str,tok->len);
-    node->arg=calloc(6,sizeof(Node));
+    node->argv=calloc(6,sizeof(Node));
+    
     for(int i=0;;i++){
         if(i>=6){
             error("stack overflow");
@@ -236,8 +243,8 @@ Node*func(){
         if(consume(")")){//func(){...}
             break;
         }
-        node->arg[i]=expr();
-        if(consume(")")){//func(a,b,...){...}
+        node->argv[i]=expr();
+        if(consume(")")){//func(a,...){...}
             break;
         }
         expect(",");
@@ -453,12 +460,12 @@ Node*primary(){//kk
             node->kind=ND_FUNC_CALL;
             node->funcname=calloc(100,sizeof(char));
             memcpy(node->funcname,tok->str,tok->len);
-            node->arg=calloc(6,sizeof(Node));
+            node->argv=calloc(6,sizeof(Node));
             if(consume(")")){
                 return node;
             }
             for(int i=0;;i++){
-                node->arg[i]=expr();
+                node->argv[i]=expr();
                 if(consume(")")){
                     return node;
                 }
@@ -466,7 +473,14 @@ Node*primary(){//kk
             }
         }
 
-        //variable
+        //variableLVar 
+
+        //ここでlocals_headを宣言したら,変数が新しく出るたびlocals_headが0->offsetになる
+        // LVar locals_head;
+        // locals_head.next=NULL;
+        // locals_head.offset=0;
+        // locals=&locals_head;
+
         Node*node=calloc(1,sizeof(Node));
         node->kind=ND_LVAR;
         LVar*lvar=find_lvar(tok);
@@ -477,15 +491,21 @@ Node*primary(){//kk
         else{
             //printf("2\n");
             lvar=calloc(1,sizeof(LVar));
-            lvar->next=locals;
+            lvar->next=locals[cur_func];
             lvar->name=tok->str;
             lvar->len=tok->len;
-            lvar->offset=locals->offset+8;
+            if(locals[cur_func]==NULL){
+                lvar->offset=8;
+            }else{
+                lvar->offset=locals[cur_func]->offset+8;
+            }
             node->offset=lvar->offset;
-            locals=lvar;
+            locals[cur_func]=lvar;
         }
         return node;
     }
+
+    
 
 
 

@@ -2,6 +2,7 @@
 
 static int control_count=0;
 static int main_count=0;
+extern int Nvar;
 
 char*arg_System_V_AMD64_ABI[]={"rdi","rsi","rdx","rcx","r8","r9",};
 
@@ -95,6 +96,8 @@ void gen(Node*node){//kk
             printf(".Lbegin%03d:\n",screen_count);
             if(node->lhs->lhs->rhs){
                 gen(node->lhs->lhs->rhs);
+            }else{
+                printf("  push 1\n");
             }
 
             printf("  pop rax\n");
@@ -115,37 +118,45 @@ void gen(Node*node){//kk
         }  
 
         case ND_FUNC_DEF:{
-            if(memcmp(node->funcname,"main",4)==0){
-                if(main_count==0){
-                    //printf(".global main\n");
-                    printf("main:\n");
-                    printf("  push rbp\n");
-                    printf("  mov rbp, rsp\n");
-                    printf("  sub rsp, %d\n",8*26);
-                    main_count++;
-                }else{
-                    error("more than one function 'many' is here" );
-                }
-            }else{
+            // if(memcmp(node->funcname,"main",4)==0){
+            //     if(main_count==0){
+            //         //printf(".global main\n");
+            //         printf("main:\n");
+            //         printf("  push rbp\n");
+            //         printf("  mov rbp, rsp\n");
+            //         //printf("  sub rsp, %d\n",8*26);
+            //         main_count++;
+            //     }else{
+            //         error("more than one function 'main' are here" );
+            //     }
+            // }else{
                 printf("%s:\n",node->funcname);
-                printf("  sub rsp, %d\n",arg_count);
-            }
-            for(int i=0;node->arg[i];i++){
+
+                printf("  push rbp\n");
+                printf("  mov rbp, rsp\n");
+                printf("  sub rsp, %d\n",Nvar*8);//it is necessary to open stack in advance because the instruction used when assigning arguments is "mov" instead of "push".
+
+                //printf("  sub rsp, %d\n",arg_count);
+            
+            for(int i=0;node->argv[i];i++){
                 printf("  mov rax, rbp\n");
-                printf("  sub rax, %d\n",node->arg[i]->offset);
+                printf("  sub rax, %d\n",node->argv[i]->offset);
                 printf("  mov [rax], %s\n",arg_System_V_AMD64_ABI[i]);
             }
             gen(node->lhs);
-
+            printf("  pop rax\n");
+            printf("  mov rbp, rsp\n");
+            printf("  pop rbp\n");
+            printf("  ret\n");
             return;
         }
 
         case ND_FUNC_CALL:{
-            for(int i=0;node->arg[i];i++){
-                gen(node->arg[i]);
+            for(int i=0;node->argv[i];i++){
+                gen(node->argv[i]);
                 arg_count++;
             }
-            for(int i=arg_count-1;i>=0;i--){
+            for(int i=arg_count-1; i>=0; i--){
                 printf("  pop %s\n",arg_System_V_AMD64_ABI[i]);
             }
             printf("  mov rax, rsp\n");
@@ -154,11 +165,13 @@ void gen(Node*node){//kk
             // printf("  mov rax, 0\n");
             printf("  call %s\n",node->funcname);
             printf("  jmp .Lend%03d\n",screen_count);
+
             printf(".L.call.%03d:\n",screen_count);
             printf("  sub rsp, 8\n");
             //printf("  mov rax, 0\n"); // ALに0を入れる。
             printf("  call %s\n",node->funcname);
             printf("  add rsp, 8\n");
+
             printf(".Lend%03d:\n",screen_count);
             printf("  push rax\n");
 

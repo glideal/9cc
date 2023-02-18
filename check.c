@@ -82,17 +82,17 @@ void CheckNode(Node* node){
                 break;
             }case ND_FUNC_DEF:{
                 printf(" %s\n","fanction definition");
-                if(node->arg[0]!=NULL){
+                if(node->argv[0]!=NULL){
                     printf("arguments are\n");
                 }
-                for(int i=0;node->arg[i];i++){
-                    switch(node->arg[i]->kind){
+                for(int i=0;node->argv[i];i++){
+                    switch(node->argv[i]->kind){
                         case ND_NUM:{
-                            printf("num[%d]==%d ",i,node->arg[i]->val);
+                            printf("num[%d]==%d ",i,node->argv[i]->val);
                             break;
                         }
                         case ND_LVAR:{
-                            printf("variable[%d]==%d ",i,node->arg[i]->offset);
+                            printf("variable[%d]==%d ",i,node->argv[i]->offset);
                             break;
                         }
                         default:{

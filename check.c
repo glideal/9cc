@@ -124,6 +124,14 @@ void CheckNode(Node* node){
                 printf(" %s\n","return");
                 break;
             }
+            case ND_ADDR:{
+                printf(" &\n");
+                break;
+            }
+            case ND_DEREF:{
+                printf(" *(pointer)\n");
+                break;
+            }
             case ND_NUM:{
                 printf(" %s %d\n","number",node->val);
                 break;

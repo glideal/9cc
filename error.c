@@ -65,7 +65,6 @@ void error_line(char*p){
         //printf("\n");
     }
 */
-
 }
 
 Token*error_tokenize(){

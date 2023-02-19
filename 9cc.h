@@ -48,7 +48,15 @@ Token *new_token(TokenKind kind,Token *cur,char *str,int len);
 bool startswith(char*p,char*q);
 void StrIdent(char* s,char** endptr);
 int is_alnum(char c);
+int is_keyward(char*p);
+TokenKind identifier(char*p);
 Token *tokenize();
+
+typedef struct ReservedWord ReservedWord;
+struct ReservedWord{
+    char*word;
+    TokenKind kind;
+};
 
 /*______________________________________________Node_________________________________________________*/
 

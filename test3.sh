@@ -5,6 +5,7 @@ assert(){
     ./9cc "$input" > test3.s
     echo "_____________________________________"
 }
+assert 'main() return 42;'
 # assert  'main(){
 #         num=21;
 #         return num;

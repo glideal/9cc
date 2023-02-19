@@ -64,7 +64,7 @@ Token *tokenize(){
     Token head;
     head.next=NULL;
     Token *cur=&head;
-    int line=0;
+    int line=1;
     while(*p){
         //printf("line=%d\n",line);
         if(*p=='\n'){
@@ -98,39 +98,47 @@ Token *tokenize(){
             continue;
         }
 
-        if(strncmp(p,"return",6)==0&&(!is_alnum(p[6]))){
-            cur=new_token(TK_RETURN,cur,p,6);
+        int keyward=is_keyward(p);
+        if(keyward!=0){
+            TokenKind kind=identifier(p);
+            cur=new_token(kind,cur,p,keyward);
             cur->line=line;
-            p+=6;
+            p+=keyward;
             continue;
-        }
+        // if(strncmp(p,"return",6)==0&&(!is_alnum(p[6]))){
+        //     cur=new_token(TK_RETURN,cur,p,6);
+        //     cur->line=line;
+        //     p+=6;
+        //     continue;
+        // }
 
-        if(strncmp(p,"if",2)==0&&(!is_alnum(p[2]))){
-            cur=new_token(TK_IF,cur,p,2);
-            cur->line=line;
-            p+=2;
-            continue;
-        }        
+        // if(strncmp(p,"if",2)==0&&(!is_alnum(p[2]))){
+        //     cur=new_token(TK_IF,cur,p,2);
+        //     cur->line=line;
+        //     p+=2;
+        //     continue;
+        // }        
 
-        if(strncmp(p,"else",4)==0&&(!is_alnum(p[4]))){
-            cur=new_token(TK_ELSE,cur,p,4);
-            cur->line=line;
-            p+=4;
-            continue;
-        }
+        // if(strncmp(p,"else",4)==0&&(!is_alnum(p[4]))){
+        //     cur=new_token(TK_ELSE,cur,p,4);
+        //     cur->line=line;
+        //     p+=4;
+        //     continue;
+        // }
 
-        if(strncmp(p,"while",5)==0&&(!is_alnum(p[5]))){
-            cur=new_token(TK_WHILE,cur,p,5);
-            cur->line=line;
-            p+=5;
-            continue;
-        }
+        // if(strncmp(p,"while",5)==0&&(!is_alnum(p[5]))){
+        //     cur=new_token(TK_WHILE,cur,p,5);
+        //     cur->line=line;
+        //     p+=5;
+        //     continue;
+        // }
         
-        if(strncmp(p,"for",3)==0&&(!is_alnum(p[3]))){
-            cur=new_token(TK_FOR,cur,p,3);
-            cur->line=line;
-            p+=3;
-            continue;
+        // if(strncmp(p,"for",3)==0&&(!is_alnum(p[3]))){
+        //     cur=new_token(TK_FOR,cur,p,3);
+        //     cur->line=line;
+        //     p+=3;
+        //     continue;
+        // }
         }
 
         if('a'<=*p&&*p<='z'){

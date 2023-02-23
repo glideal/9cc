@@ -3,10 +3,19 @@
 extern Node*code[100];
 
 void TokenCheck(Token head){
-    for(Token*t=head.next;!(t->kind==TK_EOF);t=t->next){
-        printf("line=%d ",t->line);
-        printf("%s\n",t->str);
-        printf("_________________________\n");
+    Token*t=head.next;
+    while(t){
+        for(;!(t->kind==TK_EOF);){
+            printf("line=%d ",t->line);
+            printf("%s\n",t->str);
+            printf("_________________________\n");
+            t=t->next;
+        }
+        if(t->kind==TK_EOF){
+            printf("_EOF_\n");
+            printf("_________________________\n");
+            t=t->next;
+        }
     }
 }
 

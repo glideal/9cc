@@ -4,5 +4,6 @@
 tmp*
 a.out
 test2.sh
+test3.sh
 9cc
 *.exe

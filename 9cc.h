@@ -18,6 +18,8 @@ typedef enum {
     TK_IDENT,     //識別子
     TK_NUM,       //integer token
     TK_RETURN,
+
+    TK_TYPE,
     TK_EOF,       //token to remark end of input
 }TokenKind;
 
@@ -32,7 +34,7 @@ struct Token{
     int val;
     char *str;
     int len;
-    int line;
+    int line;//for finction Error
 };
 
 //Token *token;
@@ -48,7 +50,7 @@ Token *new_token(TokenKind kind,Token *cur,char *str,int len);
 bool startswith(char*p,char*q);
 void StrIdent(char* s,char** endptr);
 int is_alnum(char c);
-int is_keyward(char*p);
+int is_keyword(char*p);
 TokenKind identifier(char*p);
 Token *tokenize();
 
@@ -131,6 +133,9 @@ LVar *find_lvar(Token*tok);
 
 bool consume(char* op);
 Token* consume_kind(TokenKind kind);
+
+Node*define_variable(Token*tok);
+Node*variable(Token*tok);
 
 Node*program();
 Node*func();

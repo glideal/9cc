@@ -91,8 +91,9 @@ void error_at(int line,char*fmt,...){
     //     exit(1);
     // }
     
-
-    fprintf(stderr,"%s\n",input[line-1]);
+    if(line-1>=0){
+        fprintf(stderr,"%s\n",input[line-1]);
+    }
     fprintf(stderr,"%s\n",input[line]);
     fprintf(stderr,"Line:%d~%d ",line,line+1);//pos個の空白を出力
     vfprintf(stderr,fmt,ap);

@@ -1,8 +1,8 @@
 #include "9cc.h"
 
-int is_keyward(char *p){
+int is_keyword(char *p){
     static char*kw[]={
-        "return", "if", "else", "for", "while"
+        "return", "if", "else", "for", "while","int"
     };
 
     for(int i=0;i<sizeof(kw)/sizeof(*kw);i++){
@@ -13,13 +13,22 @@ int is_keyward(char *p){
     return 0;
 }
 
+/*--------------------
+struct ReservedWord{
+    char*word;
+    TokenKind kind;
+};
+--------------------*/
+
 ReservedWord reservedword[]={
   {"return", TK_RETURN},
   {"if", TK_IF},
   {"else", TK_ELSE},
   {"while", TK_WHILE},
   {"for", TK_FOR},
-  {"",TK_EOF},
+  {"int",TK_TYPE},
+
+  {"",TK_EOF}
 };
 
 TokenKind identifier(char*p){

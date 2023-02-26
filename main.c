@@ -2,8 +2,8 @@
 
 extern char* user_input;
 extern char** input;
-extern Token*token;
-extern Node*code[100];
+extern Token_t*token;
+extern Node_t*code[100];
 int Nvar;//the number of variable
 
 int main(int argc, char**argv){//ok//kk

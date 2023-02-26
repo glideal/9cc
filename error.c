@@ -67,7 +67,7 @@ void error_line(char*p){
 */
 }
 
-Token*error_tokenize(){
+Token_t*error_tokenize(){
 }
 
 void error(char *fmt,...){//argument is same to Printf Fanction

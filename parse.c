@@ -4,9 +4,9 @@
 char* user_input;
 char** input;
 
-Token *token;
+Token_t *token;
 
-LVar*locals[100];
+LVar_t*locals[100];
 int cur_func=0;
 
 void expect(char* op){
@@ -29,8 +29,8 @@ bool at_eof(){
     return token->kind==TK_EOF;
 }
 
-Token *new_token(TokenKind kind,Token *cur,char *str,int len){
-    Token *tok=calloc(1,sizeof(Token));
+Token_t *new_token(TokenKind kind,Token_t *cur,char *str,int len){
+    Token_t *tok=calloc(1,sizeof(Token_t));
     tok->kind=kind;
     tok->str=str;
     tok->len=len;
@@ -59,11 +59,11 @@ int is_alnum(char c){
 }
 
 
-Token *tokenize(){
+Token_t *tokenize(){
     char*p=user_input;
-    Token head;
+    Token_t head;
     head.next=NULL;
-    Token *cur=&head;
+    Token_t *cur=&head;
     int line=0;
     while(*p){
         //printf("line=%d\n",line);
@@ -161,24 +161,24 @@ Token *tokenize(){
 
 /*_____________________________________________________Node____________________________________________________________*/
 
-Node*code[100];
+Node_t*code[100];
 
 
-Node*new_node(NodeKind kind){//kk
-    Node*node=calloc(1,sizeof(Node));
+Node_t*new_node(NodeKind kind){//kk
+    Node_t*node=calloc(1,sizeof(Node_t));
     node->kind=kind;
     return node;
 }
 
-Node*new_binary(NodeKind kind,Node*lhs,Node*rhs){//kk
-    Node*node=new_node(kind);
+Node_t*new_binary(NodeKind kind,Node_t*lhs,Node_t*rhs){//kk
+    Node_t*node=new_node(kind);
     node->lhs=lhs;
     node->rhs=rhs;
     return node;
 }
 
-Node*new_num(int val){//kk
-    Node*node=new_node(ND_NUM);
+Node_t*new_num(int val){//kk
+    Node_t*node=new_node(ND_NUM);
     node->val=val;
     return node;
 }
@@ -192,18 +192,18 @@ bool consume(char* op){
     return true;
 }
 
-Token* consume_kind(TokenKind kind){
+Token_t* consume_kind(TokenKind kind){
     if (token->kind != kind){
         return NULL;
     }
-    Token* tok=token;
+    Token_t* tok=token;
     token=token->next;
     return tok;
 }
 
 
-LVar *find_lvar(Token*tok){
-    for(LVar *var=locals[cur_func];var;var=var->next){
+LVar_t *find_lvar(Token_t*tok){
+    for(LVar_t *var=locals[cur_func];var;var=var->next){
         if(var->len==tok->len&&!memcmp(tok->str,var->name,var->len)){//the variable exists, then return that variable
             return var;
         }
@@ -214,7 +214,7 @@ LVar *find_lvar(Token*tok){
 
 
 
-Node*program(){
+Node_t*program(){
     // LVar locals_head;
     // locals_head.next=NULL;
     // locals_head.offset=0;
@@ -233,21 +233,21 @@ Node*program(){
 }
 
 // func = "int" ident "(" ("int" ident ("," "int" ident)*)? ")" stmt
-Node*func(){
-    Node*node;
+Node_t*func(){
+    Node_t*node;
     // if(consume_kind(TK_TYPE)==NULL){
     //     error_at(token->line,"expect type declaration");
     // }
-    Token* tok=consume_kind(TK_IDENT);
+    Token_t* tok=consume_kind(TK_IDENT);
     if(tok==NULL){
         error("not function\n");
     }
     expect("(");
-    node=calloc(1,sizeof(Node));
+    node=calloc(1,sizeof(Node_t));
     node->kind=ND_FUNC_DEF;
     node->funcname=calloc(100,sizeof(char));
     memcpy(node->funcname,tok->str,tok->len);
-    node->argv=calloc(6,sizeof(Node));
+    node->argv=calloc(6,sizeof(Node_t));
     
     for(int i=0;;i++){
         if(i>=6){
@@ -257,7 +257,7 @@ Node*func(){
             break;
         }
         if(consume_kind(TK_TYPE)){
-            Token*tok=consume_kind(TK_IDENT);
+            Token_t*tok=consume_kind(TK_IDENT);
             node->argv[i]=define_variable(tok);
         }else{
             error_at(token->line,"expect type of variable");
@@ -279,10 +279,10 @@ Node*func(){
 //        | "while" "(" expr ")" stmt
 //        | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //        | "int" "*"* ident ";"
-Node*stmt(){
-    Node*node;
+Node_t*stmt(){
+    Node_t*node;
     if(consume("{")){
-        node=calloc(1,sizeof(Node));
+        node=calloc(1,sizeof(Node_t));
         node->kind=ND_BLOCK;
         /*
         for(int i=0;!consume("}");i++){
@@ -290,7 +290,7 @@ Node*stmt(){
             node->block[i]=stmt();
         }
         */
-        node->block= calloc(300, sizeof(Node));
+        node->block= calloc(300, sizeof(Node_t));
         for(int i=0;!consume("}");i++){
             if(i>300){
                 error("block flowover");
@@ -302,7 +302,7 @@ Node*stmt(){
 
     if(consume_kind(TK_IF)){
         expect("(");
-        node=calloc(1,sizeof(Node));
+        node=calloc(1,sizeof(Node_t));
         node->kind=ND_IF;
         node->lhs=expr();
         expect(")");
@@ -315,7 +315,7 @@ Node*stmt(){
 
     if(consume_kind(TK_WHILE)){
         expect("(");
-        node=calloc(1,sizeof(Node));
+        node=calloc(1,sizeof(Node_t));
         node->kind=ND_WHILE;
         node->lhs=expr();
         expect(")");
@@ -325,12 +325,12 @@ Node*stmt(){
 
     if(consume_kind(TK_FOR)){
         expect("(");
-        node=calloc(1,sizeof(Node));
+        node=calloc(1,sizeof(Node_t));
         node->kind=ND_FOR;
-        node->lhs=calloc(1,sizeof(Node));
-        node->lhs->lhs=calloc(1,sizeof(Node));
-        node->lhs->rhs=calloc(1,sizeof(Node));
-        node->rhs=calloc(1,sizeof(Node));
+        node->lhs=calloc(1,sizeof(Node_t));
+        node->lhs->lhs=calloc(1,sizeof(Node_t));
+        node->lhs->rhs=calloc(1,sizeof(Node_t));
+        node->rhs=calloc(1,sizeof(Node_t));
         if(!consume(";")){
             node->lhs->lhs->lhs=expr();
             expect(";");
@@ -352,7 +352,7 @@ Node*stmt(){
 
     if(consume_kind(TK_RETURN)){
         //printf("8\n");
-        node=calloc(1,sizeof(Node));
+        node=calloc(1,sizeof(Node_t));
         node->kind=ND_RETURN;
         node->lhs=expr();
         //printf("10\n");
@@ -361,11 +361,11 @@ Node*stmt(){
     }
 
     if(consume_kind(TK_TYPE)){
-        Token*tok=consume_kind(TK_IDENT);
+        Token_t*tok=consume_kind(TK_IDENT);
         if(tok==NULL){
             error_at(tok->line,"expect variable");
         }
-        node=calloc(1,sizeof(Node));
+        node=calloc(1,sizeof(Node_t));
         node=define_variable(tok);
         expect(";");
         return node;
@@ -381,13 +381,13 @@ Node*stmt(){
 }
 
 // expr       = assign
-Node*expr(){
+Node_t*expr(){
    return assign();
 }
 
 // assign     = equality ("=" assign)?
-Node*assign(){
-    Node*node=equality();
+Node_t*assign(){
+    Node_t*node=equality();
     if(consume("=")){
         //printf("3\n");
         node=new_binary(ND_ASSIGN,node,assign());
@@ -397,8 +397,8 @@ Node*assign(){
 }
 
 // equality   = relational ("==" relational | "!=" relational)*
-Node*equality(){
-    Node*node=relational();
+Node_t*equality(){
+    Node_t*node=relational();
 
     for(;;){
         if(consume("==")){
@@ -414,8 +414,8 @@ Node*equality(){
 }
 
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-Node*relational(){
-    Node*node=add();
+Node_t*relational(){
+    Node_t*node=add();
 
     for(;;){
         if(consume("<")){
@@ -437,8 +437,8 @@ Node*relational(){
 }
 
 // add        = mul ("+" mul | "-" mul)*
-Node*add(){
-    Node*node=mul();
+Node_t*add(){
+    Node_t*node=mul();
 
     for(;;){
         if(consume("+")){
@@ -454,8 +454,8 @@ Node*add(){
 }
 
 // mul        = unary ("*" unary | "/" unary)*
-Node*mul(){
-    Node*node=unary();
+Node_t*mul(){
+    Node_t*node=unary();
 
     for(;;){
         if(consume("*")){
@@ -474,7 +474,7 @@ Node*mul(){
 //       | "-"? primary
 //       | "*" unary
 //       | "&" unary
-Node*unary(){
+Node_t*unary(){
     if (consume("+")){
         return unary();
     }
@@ -482,15 +482,15 @@ Node*unary(){
         return new_binary(ND_SUB,new_num(0),unary());
     }
     if(consume("&")){
-        Node*node;
-        node=calloc(1,sizeof(Node));
+        Node_t*node;
+        node=calloc(1,sizeof(Node_t));
         node->kind=ND_ADDR;
         node->lhs=unary();
         return node;
     }
     if(consume("*")){
-        Node*node;
-        node=calloc(1,sizeof(Node));
+        Node_t*node;
+        node=calloc(1,sizeof(Node_t));
         node->kind=ND_DEREF;
         node->lhs=unary();
         return node;
@@ -501,22 +501,22 @@ Node*unary(){
 // primary = num
 //        | ident ("(" expr* ")")?
 //        | "(" expr ")"
-Node*primary(){//kk
+Node_t*primary(){//kk
     if (consume("(")){
-        Node*node=expr();
+        Node_t*node=expr();
         expect(")");
         return node;
     }
 
-    Token*tok=consume_kind(TK_IDENT);
+    Token_t*tok=consume_kind(TK_IDENT);
     if(tok){
         //function
         if(consume("(")){
-            Node*node=calloc(1,sizeof(Node));
+            Node_t*node=calloc(1,sizeof(Node_t));
             node->kind=ND_FUNC_CALL;
             node->funcname=calloc(100,sizeof(char));
             memcpy(node->funcname,tok->str,tok->len);
-            node->argv=calloc(6,sizeof(Node));
+            node->argv=calloc(6,sizeof(Node_t));
             if(consume(")")){
                 return node;
             }
@@ -533,13 +533,13 @@ Node*primary(){//kk
     return new_num(expect_number());
 }
 
-Node*define_variable(Token*tok){
+Node_t*define_variable(Token_t*tok){
     if(tok==NULL){
         error("not TK_IDENT");
     }
-    Node*node=calloc(1,sizeof(Node));
+    Node_t*node=calloc(1,sizeof(Node_t));
     node->kind=ND_LVAR;
-    LVar*lvar=find_lvar(tok);
+    LVar_t*lvar=find_lvar(tok);
     if(lvar){
         char*name[100];
         memcmp(name,tok->str,tok->len);
@@ -547,7 +547,7 @@ Node*define_variable(Token*tok){
     }
     else{
         //printf("2\n");
-        lvar=calloc(1,sizeof(LVar));
+        lvar=calloc(1,sizeof(LVar_t));
         lvar->next=locals[cur_func];
         lvar->name=tok->str;
         lvar->len=tok->len;
@@ -562,13 +562,13 @@ Node*define_variable(Token*tok){
     return node;
 }
 
-Node*variable(Token*tok){
+Node_t*variable(Token_t*tok){
     if(tok==NULL){
         error("not TK_IDENT");
     }
-    Node*node=calloc(1,sizeof(Node));
+    Node_t*node=calloc(1,sizeof(Node_t));
     node->kind=ND_LVAR;
-    LVar*lvar=find_lvar(tok);
+    LVar_t*lvar=find_lvar(tok);
     if(lvar){
         node->offset=lvar->offset;
     }

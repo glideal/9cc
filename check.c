@@ -1,9 +1,9 @@
 #include "9cc.h"
 
-extern Node*code[100];
+extern Node_t*code[100];
 
-void TokenCheck(Token head){
-    Token*t=head.next;
+void TokenCheck(Token_t head){
+    Token_t*t=head.next;
     while(t){
         for(;!(t->kind==TK_EOF);){
             printf("line=%d ",t->line);
@@ -31,7 +31,7 @@ void Check(){
     }
 }
 
-void CheckNode(Node* node){
+void CheckNode(Node_t* node){
     if(node){
         printf("_____start________________________\n\n");
 

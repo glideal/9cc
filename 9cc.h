@@ -26,11 +26,11 @@ typedef enum {
 
 //typedef struct Token Token;
 
-typedef struct Token Token;
+typedef struct Token Token_t;
 
 struct Token{
     TokenKind kind;
-    struct Token *next;
+    Token_t*next;
     int val;
     char *str;
     int len;
@@ -39,22 +39,22 @@ struct Token{
 
 //Token *token;
 void error_line(char*p);
-Token*error_tokenize();
+Token_t*error_tokenize();
 void error(char* fmt,...);
 void error_at(int line,char*fmt,...);
 
 void expect(char* op);
 int expect_number();
 bool at_eof();
-Token *new_token(TokenKind kind,Token *cur,char *str,int len);
+Token_t *new_token(TokenKind kind,Token_t *cur,char *str,int len);
 bool startswith(char*p,char*q);
 void StrIdent(char* s,char** endptr);
 int is_alnum(char c);
 int is_keyword(char*p);
 TokenKind identifier(char*p);
-Token *tokenize();
+Token_t *tokenize();
 
-typedef struct ReservedWord ReservedWord;
+typedef struct ReservedWord ReservedWord_t;
 struct ReservedWord{
     char*word;
     TokenKind kind;
@@ -93,67 +93,59 @@ typedef enum{
 
 //typedef struct Node Node;
 
-typedef struct Node Node;
+typedef struct Node Node_t;
 
 struct Node{
     NodeKind kind;
-    Node*lhs;
-    Node*rhs;
-    Node**block;
-    Node**argv;
+    Node_t*lhs;
+    Node_t*rhs;
+    Node_t**block;
+    Node_t**argv;
     int argc;
     char*funcname;
     int val;
     int offset;
 };
 
-Node*new_node(NodeKind kind);
-Node*new_num(int val);
-Node*new_binary(NodeKind kind,Node*lhs,Node*rhs);
+Node_t*new_node(NodeKind kind);
+Node_t*new_num(int val);
+Node_t*new_binary(NodeKind kind,Node_t*lhs,Node_t*rhs);
 
-typedef struct LVar LVar;
+typedef struct LVar LVar_t;
 
 struct LVar{
-    struct LVar*next;
+    LVar_t*next;//struct Lvar*next
     char*name;
     int len;
     int offset;
 };
 
-typedef struct Func Func;
 
-struct Func{
-    struct Func*next;
-    char*name;
-    int argunum;
-    int offset;
-};
-
-LVar *find_lvar(Token*tok);
+LVar_t *find_lvar(Token_t*tok);
 
 bool consume(char* op);
-Token* consume_kind(TokenKind kind);
+Token_t* consume_kind(TokenKind kind);
 
-Node*define_variable(Token*tok);
-Node*variable(Token*tok);
+Node_t*define_variable(Token_t*tok);
+Node_t*variable(Token_t*tok);
 
-Node*program();
-Node*func();
-Node*stmt();
-Node*expr();
-Node*assign();
-Node*equality();
-Node*relational();
-Node*add();
-Node*mul();
-Node*unary();
-Node*primary();
+Node_t*program();
+Node_t*func();
+Node_t*stmt();
+Node_t*expr();
+Node_t*assign();
+Node_t*equality();
+Node_t*relational();
+Node_t*add();
+Node_t*mul();
+Node_t*unary();
+Node_t*primary();
 
-void gen(Node*node);
+void gen(Node_t*node);
 /*__________________________check______________________________*/
-void TokenCheck(Token head);
+void TokenCheck(Token_t head);
 void Check();
-void CheckNode(Node*node);
+void CheckNode(Node_t*node);
 
 
 #endif // _9CC_H_

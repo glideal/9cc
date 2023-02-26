@@ -6,7 +6,7 @@ extern int Nvar;
 
 char*arg_System_V_AMD64_ABI[]={"rdi","rsi","rdx","rcx","r8","r9",};
 
-void gen_lval(Node*node){
+void gen_lval(Node_t*node){
     if (node->kind!=ND_LVAR){
         error("the left value of assignment is not a variable");
     }
@@ -15,7 +15,7 @@ void gen_lval(Node*node){
     printf("  push rax\n");
 }
 
-void gen(Node*node){//kk
+void gen(Node_t*node){//kk
     if(node->kind==ND_RETURN){
         gen(node->lhs);
         printf("  pop rax\n");

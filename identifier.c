@@ -20,7 +20,7 @@ struct ReservedWord{
 };
 --------------------*/
 
-ReservedWord reservedword[]={
+ReservedWord_t reservedword[]={
   {"return", TK_RETURN},
   {"if", TK_IF},
   {"else", TK_ELSE},

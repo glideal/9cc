@@ -145,7 +145,7 @@ assert 42 'main(){
 # assert 42 'if(2*5<9)39; else {num=3;val=num*7;return val*2;}'
 # assert 42 'for(i=0;i<5;i=i+1){if(i==2){num=19;}if(i==4){val=23;}}return num+val;'
 # assert 42 'num=0;i=0;while(i<42){num=num+1;i=i+1;}return num;'
-# assert 42 'if(2*4==7){if(5+2==7){num=3;}else {num=4;}}else{return 42;}'
+# assert 42 'if(2*4==7){if(5+2==7){num=3;}else {num  =4;}}else{return 42;}'
 
 assert 21 'main(){
     return sum(1,2,3,4,5,6);
@@ -204,6 +204,15 @@ fib(int c){
     int b;
     a=1;
     b=1;
+    if(c<=0){
+        return 0;
+    }
+    if(c==1){
+        return a;
+    }
+    if(c==2){
+        return b;
+    }
     int i;
     for(i=0;i<c-2;i=i+1){
         int tmp;
@@ -214,7 +223,34 @@ fib(int c){
     return tmp;
 }'
 
+assert 8 'main(){
+    return fib(2+4);
+}
+fib(int c){
+    int a;
+    int b;
+    a=1;
+    b=1;
+    if(c<=0){
+        return 0;
+    }
+    if(c==1){
+        return a;
+    }
+    if(c==2){
+        return b;
+    }
+    int i;
+    for(i=0;i<c-2;i=i+1){
+        int tmp;
+        tmp=a+b;
+        a=b;
+        b=tmp;
+    }
+    return tmp;
+}'
 
+#unary'&''*'
 assert 3 'main(){
     int x;
     int y;
@@ -224,5 +260,15 @@ assert 3 'main(){
     z=&y+8;
     return *z;
 }'
+
+#define pointer
+assert 21 'main(){
+    int x;
+    int*y;
+    y=&x;
+    *y=21;
+    retturn x;
+}'
+
 
 echo OK

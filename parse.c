@@ -212,8 +212,6 @@ LVar_t *find_lvar(Token_t*tok){
 }
 
 
-
-
 Node_t*program(){
     // LVar locals_head;
     // locals_head.next=NULL;
@@ -257,8 +255,7 @@ Node_t*func(){
             break;
         }
         if(consume_kind(TK_TYPE)){
-            Token_t*tok=consume_kind(TK_IDENT);
-            node->argv[i]=define_variable(tok);
+            node->argv[i]=define_variable();
         }else{
             error_at(token->line,"expect type of variable");
         }
@@ -361,12 +358,8 @@ Node_t*stmt(){
     }
 
     if(consume_kind(TK_TYPE)){
-        Token_t*tok=consume_kind(TK_IDENT);
-        if(tok==NULL){
-            error_at(tok->line,"expect variable");
-        }
         node=calloc(1,sizeof(Node_t));
-        node=define_variable(tok);
+        node=define_variable();
         expect(";");
         return node;
     }
@@ -528,14 +521,26 @@ Node_t*primary(){//kk
                 expect(",");
             }
         }
-        return variable(tok);
+        return call_variable(tok);
     }
     return new_num(expect_number());
 }
 
-Node_t*define_variable(Token_t*tok){
+Node_t*define_variable(){
+    Type_t*type;
+    type=calloc(1,sizeof(Type_t));
+    type->ty=INT;
+    type->ptr_to=NULL;
+    while(consume("*")){
+        Type_t*t;
+        t=calloc(1,sizeof(Type_t));
+        t->ty=PTR;
+        t->ptr_to=type;
+        type=t;
+    }
+    Token_t*tok=consume_kind(TK_IDENT);
     if(tok==NULL){
-        error("not TK_IDENT");
+        error("invalid define variable");
     }
     Node_t*node=calloc(1,sizeof(Node_t));
     node->kind=ND_LVAR;
@@ -556,13 +561,14 @@ Node_t*define_variable(Token_t*tok){
         }else{
             lvar->offset=locals[cur_func]->offset+8;
         }
+        // lvar->type=type;
         node->offset=lvar->offset;
         locals[cur_func]=lvar;
     }
     return node;
 }
 
-Node_t*variable(Token_t*tok){
+Node_t*call_variable(Token_t*tok){
     if(tok==NULL){
         error("not TK_IDENT");
     }

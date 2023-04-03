@@ -107,6 +107,12 @@ struct Node{
     int offset;
 };
 
+typedef struct Type Type_t;
+struct Type{
+    enum{INT,PTR}ty;
+    Type_t *ptr_to;
+};
+
 Node_t*new_node(NodeKind kind);
 Node_t*new_num(int val);
 Node_t*new_binary(NodeKind kind,Node_t*lhs,Node_t*rhs);
@@ -118,6 +124,7 @@ struct LVar{
     char*name;
     int len;
     int offset;
+    Type_t*type;
 };
 
 
@@ -126,8 +133,8 @@ LVar_t *find_lvar(Token_t*tok);
 bool consume(char* op);
 Token_t* consume_kind(TokenKind kind);
 
-Node_t*define_variable(Token_t*tok);
-Node_t*variable(Token_t*tok);
+Node_t*define_variable();
+Node_t*call_variable(Token_t*tok);
 
 Node_t*program();
 Node_t*func();

@@ -7,6 +7,10 @@ extern int Nvar;
 char*arg_System_V_AMD64_ABI[]={"rdi","rsi","rdx","rcx","r8","r9",};
 
 void gen_lval(Node_t*node){
+    if(node->kind==ND_DEREF){
+        gen(node->lhs);
+        return; 
+    }
     if (node->kind!=ND_LVAR){
         error("the left value of assignment is not a variable");
     }

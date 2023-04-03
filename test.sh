@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 assert(){
     expected="$1"
     input="$2"
@@ -264,10 +264,10 @@ assert 3 'main(){
 #define pointer
 assert 21 'main(){
     int x;
-    int*y;
+    int y;
     y=&x;
     *y=21;
-    retturn x;
+    return x;
 }'
 
 

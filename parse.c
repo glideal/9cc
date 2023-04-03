@@ -503,7 +503,7 @@ Node_t*primary(){//kk
 
     Token_t*tok=consume_kind(TK_IDENT);
     if(tok){
-        //function
+        //call_function
         if(consume("(")){
             Node_t*node=calloc(1,sizeof(Node_t));
             node->kind=ND_FUNC_CALL;
@@ -561,7 +561,7 @@ Node_t*define_variable(){
         }else{
             lvar->offset=locals[cur_func]->offset+8;
         }
-        // lvar->type=type;
+        lvar->type=type;
         node->offset=lvar->offset;
         locals[cur_func]=lvar;
     }
@@ -569,9 +569,6 @@ Node_t*define_variable(){
 }
 
 Node_t*call_variable(Token_t*tok){
-    if(tok==NULL){
-        error("not TK_IDENT");
-    }
     Node_t*node=calloc(1,sizeof(Node_t));
     node->kind=ND_LVAR;
     LVar_t*lvar=find_lvar(tok);

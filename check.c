@@ -19,6 +19,7 @@ void TokenCheck(Token_t head){
     }
 }
 
+
 void Check(){
     printf("\n");
     printf("\n");

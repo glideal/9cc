@@ -4,7 +4,11 @@ assert(){
     input="$2"
 
     ./9cc "$input" > tmp.s
-    gcc tmp.s -o tmp.exe
+    cc -c tmp.s
+    cd func
+    cc -c func.c
+    cd ..
+    cc -o tmp.exe func/func.o tmp.o
     ./tmp.exe
     actual="$?"
 
@@ -16,14 +20,13 @@ assert(){
     fi
     echo "__________________________________________________________"
  }
-#int
-assert 42 'main(){
-    int x;
-    x=42;
-    return x;
-}'
 
-
+assert 4 'main() 4;'
+# assert 4 'main(){//it's fault
+#     int x;
+#     x=4;
+#     x;
+# }'
 assert 42 'main() return 42;'
 assert 42 'main() return 45+3-6;'
 assert 21 'main() return (3*35)/5;'
@@ -61,6 +64,7 @@ assert 0 'main() return 2>=3;'
 # assert 1 '1>=1;'
 # assert 0 '1>=2;'
 
+#int
 assert 42 'main(){
     int x;
     x=42;
@@ -146,7 +150,9 @@ assert 42 'main(){
 # assert 42 'for(i=0;i<5;i=i+1){if(i==2){num=19;}if(i==4){val=23;}}return num+val;'
 # assert 42 'num=0;i=0;while(i<42){num=num+1;i=i+1;}return num;'
 # assert 42 'if(2*4==7){if(5+2==7){num=3;}else {num  =4;}}else{return 42;}'
-
+assert 7 'main(){
+    return sum(3,4);
+}'
 assert 21 'main(){
     return sum(1,2,3,4,5,6);
 }
@@ -264,11 +270,62 @@ assert 3 'main(){
 #define pointer
 assert 21 'main(){
     int x;
-    int y;
+    int *y;
     y=&x;
     *y=21;
     return x;
 }'
 
+# assert 25 'main(){
+#     int a;
+#     int b;
+#     a=12;
+#     b=25;
+#     int *p;
+#     p=&a;
+#     p=p- 2;
+#     return *p;
+# }'
+ assert 4 'main(){
+    int *p;
+    alloc(&p,1,2,4,8);
+    int *q;
+    q=p+2;
+    return *q;
+ }'
+
+ #sizeof
+ assert 4 'main(){
+    int x;
+    return sizeof x;
+ }'
+
+ assert 8 'main(){
+    int*y;
+    return sizeof(y);
+ }'
+
+#  assert 4 'main(){//TODO
+#     int x;
+#     return sizeof(x+3);
+#  }'
+ 
+#  assert 8 'main(){//TODO
+#     int *y;
+#     return sizeof(y+3);
+#  }'
+
+ assert 4 'main(){
+    int*y;
+    return sizeof(*y);
+ }'
+
+ assert 4 'main(){
+    return sizeof(3);
+ }'
+
+# assert 4 'main(){//TODO
+#     return sizeof(sizeof(1))
+# }'
 
 echo OK

@@ -18,6 +18,7 @@ typedef enum {
     TK_IDENT,     //識別子
     TK_NUM,       //integer token
     TK_RETURN,
+    TK_SIZEOF,
 
     TK_TYPE,
     TK_EOF,       //token to remark end of input
@@ -95,6 +96,12 @@ typedef enum{
 
 typedef struct Node Node_t;
 
+typedef struct Type Type_t;
+struct Type{
+    enum{INT,PTR}ty;
+    Type_t *ptr_to;
+};
+
 struct Node{
     NodeKind kind;
     Node_t*lhs;
@@ -105,12 +112,7 @@ struct Node{
     char*funcname;
     int val;
     int offset;
-};
-
-typedef struct Type Type_t;
-struct Type{
-    enum{INT,PTR}ty;
-    Type_t *ptr_to;
+    Type_t*type;
 };
 
 Node_t*new_node(NodeKind kind);

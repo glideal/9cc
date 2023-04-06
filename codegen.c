@@ -3,6 +3,8 @@
 static int control_count=0;
 static int main_count=0;
 extern int Nvar;
+extern LVar_t*locals[100];
+extern int cur_func;
 
 char*arg_System_V_AMD64_ABI[]={"rdi","rsi","rdx","rcx","r8","r9",};
 
@@ -131,19 +133,36 @@ void gen(Node_t*node){//kk
             //         error("more than one function 'main' are here" );
             //     }
             // }else{
-                printf("%s:\n",node->funcname);
+            printf("%s:\n",node->funcname);
 
-                printf("  push rbp\n");
-                printf("  mov rbp, rsp\n");
-                printf("  sub rsp, %d\n",Nvar*8);//it is necessary to open stack in advance because the instruction used when assigning arguments is "mov" instead of "push".
+            printf("  push rbp\n");
+            printf("  mov rbp, rsp\n");
 
-                //printf("  sub rsp, %d\n",arg_count);
-            
+            //_pluswing_ beginning of replacing____________________
+            printf("  sub rsp, %d\n",Nvar*8);//it is necessary to open stack in advance because the instruction used when assigning arguments is "mov" instead of "push".
+
+            //printf("  sub rsp, %d\n",arg_count);
+        
             for(int i=0;node->argv[i];i++){
                 printf("  mov rax, rbp\n");
                 printf("  sub rax, %d\n",node->argv[i]->offset);
                 printf("  mov [rax], %s\n",arg_System_V_AMD64_ABI[i]);
             }
+            //_pluswing_ end of replacing__________________________
+
+            //_pluswing___________________________________________________
+            // for (int i = 0; node->argv[i]; i++) {
+            //     printf("  push %s\n", arg_System_V_AMD64_ABI[i]);
+            //     arg_count++;
+            // }
+            // // 引数の数を除いた変数の数分rspをずらして、変数領域を確保する。
+            // if (locals[cur_func]) {
+            //     int offset = locals[cur_func][0].offset;
+            //     offset -= arg_count * 8;
+            //     printf("  sub rsp, %d\n", offset);
+            // }
+            //____________________________________________________________
+
             gen(node->lhs);
             printf("  pop rax\n");
             printf("  mov rbp, rsp\n");

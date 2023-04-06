@@ -434,11 +434,28 @@ Node_t*add(){
     Node_t*node=mul();
 
     for(;;){
+        int type_size=1;
+        if(node->kind==ND_LVAR&&node->type->ty==PTR){
+            switch(node->type->ptr_to->ty){
+                case INT:{
+                    type_size=4;
+                    break;
+                }
+                case PTR:{
+                    type_size=8;
+                    break;
+                }
+            }
+        }
         if(consume("+")){
-            node=new_binary(ND_ADD,node,mul());
+            Node_t*n=calloc(1,sizeof(Node_t));
+            n=new_binary(ND_MUL,new_num(type_size),mul());
+            node=new_binary(ND_ADD,node,n);
         }
         else if(consume("-")){
-            node=new_binary(ND_SUB,node,mul());
+            Node_t*n=calloc(1,sizeof(Node_t));
+            n=new_binary(ND_MUL,new_num(type_size),mul());
+            node=new_binary(ND_SUB,node,n);
         }
         else{
             return node;
@@ -463,11 +480,17 @@ Node_t*mul(){
     }
 }
 
-// unary = "+"? primary
+// unary ="sizeof" unary
+//       | "+"? primary
 //       | "-"? primary
 //       | "*" unary
 //       | "&" unary
 Node_t*unary(){
+    if (consume_kind(TK_SIZEOF)) {
+        Node_t*n = unary();
+        int type_size = n->type && n->type->ty == PTR ? 8 : 4;
+        return new_num(type_size);
+    }
     if (consume("+")){
         return unary();
     }
@@ -563,6 +586,7 @@ Node_t*define_variable(){
         }
         lvar->type=type;
         node->offset=lvar->offset;
+        node->type=lvar->type;
         locals[cur_func]=lvar;
     }
     return node;
@@ -574,6 +598,7 @@ Node_t*call_variable(Token_t*tok){
     LVar_t*lvar=find_lvar(tok);
     if(lvar){
         node->offset=lvar->offset;
+        node->type=lvar->type;
     }
     else{
         char*name[100];

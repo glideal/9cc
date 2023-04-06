@@ -2,7 +2,7 @@
 
 int is_keyword(char *p){
     static char*kw[]={
-        "return", "if", "else", "for", "while","int"
+        "return", "if", "else", "for", "while","int","sizeof"
     };
 
     for(int i=0;i<sizeof(kw)/sizeof(*kw);i++){
@@ -26,6 +26,7 @@ ReservedWord_t reservedword[]={
   {"else", TK_ELSE},
   {"while", TK_WHILE},
   {"for", TK_FOR},
+  {"sizeof",TK_SIZEOF},
   {"int",TK_TYPE},
 
   {"",TK_EOF}

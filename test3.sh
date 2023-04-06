@@ -6,9 +6,12 @@ assert(){
     echo "_____________________________________"
 }
 assert 'main(){
-    int x;
-    int*y;
-    y=&x;
-    *y=21;
-    return x;
+    int a;
+    int b;
+    a=12;
+    b=25;
+    int *p;
+    p=&a;
+    p=p+1;
+    return *p;
 }'
